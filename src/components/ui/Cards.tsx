@@ -13,13 +13,13 @@ export const SpecCard: React.FC<SpecCardProps> = ({
   className = '',
 }) => (
   <div
-    className={`rounded-2xl border border-brand-200 bg-brand-50/60 p-4 ${className}`}
+    className={`rounded-3xl border border-brand-200 bg-brand-50/60 p-5 ${className}`}
   >
-    <h3 className="text-sm font-bold text-brand-700 mb-2 flex items-center gap-2">
-      <AlertCircle className="w-4 h-4" />
+    <h3 className="text-sm font-bold text-brand-700 mb-3 flex items-center gap-2.5">
+      <AlertCircle className="w-5 h-5" />
       {title}
     </h3>
-    <ul className="list-disc pl-5 space-y-1 text-xs text-brand-700/90 leading-5">
+    <ul className="list-disc pl-6 space-y-1.5 text-xs text-brand-700/90 leading-6">
       {items.map((item, idx) => (
         <li key={idx}>{item}</li>
       ))}
@@ -34,7 +34,7 @@ export interface ToolbarCardProps {
 
 export const ToolbarCard: React.FC<ToolbarCardProps> = ({ children, className = '' }) => (
   <div
-    className={`bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex flex-wrap items-center justify-between gap-3 ${className}`}
+    className={`bg-white rounded-3xl shadow-sm border border-slate-100 p-5 flex flex-wrap items-center justify-between gap-4 ${className}`}
   >
     {children}
   </div>
@@ -45,5 +45,5 @@ export interface ToolbarDividerProps {
 }
 
 export const ToolbarDivider: React.FC<ToolbarDividerProps> = ({ className = '' }) => (
-  <div className={`h-8 w-px bg-slate-200 ${className}`} />
+  <div className={`h-9 w-px bg-slate-200 ${className}`} />
 );

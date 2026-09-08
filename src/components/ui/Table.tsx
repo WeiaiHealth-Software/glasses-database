@@ -45,11 +45,11 @@ export function Table<T extends Record<string, unknown>>({
     return v != null ? String(v) : String(idx);
   };
 
-  const cellPad = size === 'sm' ? 'px-4 py-3' : 'px-6 py-4';
+  const cellPad = size === 'sm' ? 'px-5 py-3.5' : 'px-6 py-4.5';
 
   return (
     <div
-      className={`bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden ${className}`}
+      className={`bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden ${className}`}
     >
       <div
         className="overflow-x-auto"
@@ -82,8 +82,8 @@ export function Table<T extends Record<string, unknown>>({
                   colSpan={columns.length}
                   className={`${cellPad} text-center text-slate-400`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="flex items-center justify-center gap-2.5">
+                    <div className="w-4.5 h-4.5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
                     加载中...
                   </div>
                 </td>
@@ -92,10 +92,10 @@ export function Table<T extends Record<string, unknown>>({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="py-12 text-center text-slate-400"
+                  className="py-16 text-center text-slate-400"
                 >
-                  <div className="flex flex-col items-center gap-2">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-300">
+                  <div className="flex flex-col items-center gap-3">
+                    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-slate-300">
                       <path d="M20 13V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7m16 0v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5m16 0h-2.586a1 1 0 0 0-.707.293l-2.414 2.414a1 1 0 0 1-.707.293h-3.172a1 1 0 0 1-.707-.293l-2.414-2.414A1 1 0 0 0 6.586 13H4" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     <div className="text-sm">{emptyText}</div>
@@ -190,29 +190,29 @@ export const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <div
-      className={`flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 bg-white ${className}`}
+      className={`flex flex-wrap items-center justify-between gap-4 px-6 py-5 border-t border-slate-100 bg-white rounded-b-3xl ${className}`}
     >
       <div className="text-sm text-slate-500">
         共 <span className="font-bold text-slate-700">{total}</span> 条，当前 {start}-{end}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         <button
           onClick={() => go(current - 1)}
           disabled={current === 1}
-          className="h-8 px-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="h-10 px-4 rounded-xl border border-slate-200 bg-white text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
         >
           上一页
         </button>
         {pages.map((p, i) =>
           p === '...' ? (
-            <span key={`e-${i}`} className="px-2 text-slate-400 text-sm">
+            <span key={`e-${i}`} className="px-2.5 text-slate-400 text-sm">
               ···
             </span>
           ) : (
             <button
               key={p}
               onClick={() => go(p)}
-              className={`h-8 min-w-[32px] px-2.5 rounded-lg text-sm font-bold transition-colors ${
+              className={`h-10 min-w-[40px] px-3 rounded-xl text-sm font-bold transition-colors ${
                 p === current
                   ? 'bg-brand-600 text-white shadow-sm'
                   : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-brand-600'
@@ -225,7 +225,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         <button
           onClick={() => go(current + 1)}
           disabled={current === totalPages}
-          className="h-8 px-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="h-10 px-4 rounded-xl border border-slate-200 bg-white text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
         >
           下一页
         </button>
@@ -233,7 +233,7 @@ export const Pagination: React.FC<PaginationProps> = ({
           <select
             value={pageSize}
             onChange={(e) => onChange(1, Number(e.target.value))}
-            className="h-8 ml-2 rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-600 outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500"
+            className="h-10 ml-2 rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 font-semibold"
           >
             {[10, 20, 50, 100].map((n) => (
               <option key={n} value={n}>
@@ -253,7 +253,7 @@ export const ActionEditBtn: React.FC<{ onClick?: () => void; label?: string }> =
 }) => (
   <button
     onClick={onClick}
-    className="cursor-pointer px-3 py-2 rounded-md bg-brand-50 hover:bg-brand-100 text-sm font-medium text-brand-600 hover:text-brand-700 transition-colors"
+    className="cursor-pointer px-3.5 py-2 rounded-xl bg-brand-50 hover:bg-brand-100 text-sm font-semibold text-brand-600 hover:text-brand-700 transition-colors"
   >
     {label}
   </button>
@@ -265,7 +265,7 @@ export const ActionDeleteBtn: React.FC<{ onClick?: () => void; label?: string }>
 }) => (
   <button
     onClick={onClick}
-    className="cursor-pointer text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
+    className="cursor-pointer px-2.5 py-2 rounded-xl hover:bg-red-50 text-sm font-semibold text-red-500 hover:text-red-600 transition-colors"
   >
     {label}
   </button>

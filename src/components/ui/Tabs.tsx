@@ -51,16 +51,16 @@ export const Tabs: React.FC<TabsProps> = ({
 
   const activeTab = items.find((it) => it.props.value === current);
 
-  const padY = size === 'sm' ? 'py-1.5' : 'py-2';
-  const padX = size === 'sm' ? 'px-3.5' : 'px-4';
+  const padY = size === 'sm' ? 'py-2' : 'py-2.5';
+  const padX = size === 'sm' ? 'px-4' : 'px-5';
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm';
 
   return (
     <div className={className}>
       <div
         role="tablist"
-        className={`flex flex-wrap items-center gap-1 ${
-          variant === 'primary' ? 'bg-slate-100/70 p-1 rounded-xl' : 'border-b border-slate-200 gap-0'
+        className={`flex flex-wrap items-center gap-1.5 ${
+          variant === 'primary' ? 'bg-slate-100/70 p-1.5 rounded-2xl' : 'border-b border-slate-200 gap-0'
         } ${tabsClassName}`}
       >
         {items.map((item) => {
@@ -74,7 +74,7 @@ export const Tabs: React.FC<TabsProps> = ({
                 aria-selected={active}
                 disabled={disabled}
                 onClick={() => handleClick(value, disabled)}
-                className={`inline-flex items-center gap-1.5 rounded-lg font-bold transition-all ${padX} ${padY} ${textSize} ${
+                className={`inline-flex items-center gap-2 rounded-xl font-bold transition-all ${padX} ${padY} ${textSize} ${
                   active
                     ? 'bg-brand-600 text-white shadow-sm'
                     : disabled
@@ -94,7 +94,7 @@ export const Tabs: React.FC<TabsProps> = ({
               aria-selected={active}
               disabled={disabled}
               onClick={() => handleClick(value, disabled)}
-              className={`relative inline-flex items-center gap-1.5 font-bold transition-all ${padX} py-2.5 ${textSize} ${
+              className={`relative inline-flex items-center gap-2 font-bold transition-all ${padX} py-3.5 ${textSize} ${
                 active
                   ? 'text-brand-600'
                   : disabled
@@ -113,7 +113,7 @@ export const Tabs: React.FC<TabsProps> = ({
           );
         })}
       </div>
-      <div role="tabpanel" className="mt-4">
+      <div role="tabpanel" className="mt-6">
         {activeTab ? (
           cloneElement(activeTab, { ...activeTab.props })
         ) : items[0] ? (

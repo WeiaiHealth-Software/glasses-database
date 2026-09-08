@@ -183,7 +183,7 @@ export default function UserListPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-full">
       <SpecCard
         title="后台账号 · 管理规范"
         items={[

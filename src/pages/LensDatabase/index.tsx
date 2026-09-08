@@ -130,7 +130,7 @@ export default function LensDatabasePage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-50/50 min-h-full relative">
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-full relative">
       <SpecCard
         title="镜片数据库 · 业务规范"
         items={[

@@ -153,7 +153,7 @@ export default function TechTagListPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-50/50 min-h-full relative">
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-full relative">
       <SpecCard
         title="技术标签管理 · 开发规范"
         items={[

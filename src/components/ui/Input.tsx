@@ -16,39 +16,39 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={`w-full ${wrapperClassName}`}>
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-bold text-slate-700 mb-1.5">
+          <label htmlFor={inputId} className="block text-xs font-bold text-slate-700 mb-2 leading-5">
             {label}
             {rest.required && <span className="text-red-500 ml-0.5">*</span>}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
               {leftIcon}
             </div>
           )}
           <input
             ref={ref}
             id={inputId}
-            className={`w-full h-11 rounded-xl border bg-slate-50 text-sm outline-none transition-all ${
-              leftIcon ? 'pl-9' : 'pl-4'
-            } ${rightIcon ? 'pr-9' : 'pr-4'} ${
+            className={`w-full h-12 rounded-2xl border bg-slate-50 text-sm outline-none transition-all placeholder:text-slate-400 ${
+              leftIcon ? 'pl-11' : 'pl-4.5'
+            } ${rightIcon ? 'pr-11' : 'pr-4.5'} ${
               error
                 ? 'border-red-300 focus:ring-1 focus:ring-red-500 focus:border-red-500'
-                : 'border-slate-200 focus:ring-1 focus:ring-brand-500 focus:border-brand-500 focus:bg-white'
+                : 'border-slate-200 hover:border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white focus:shadow-[0_2px_8px_rgba(37,99,235,0.06)]'
             } ${className}`}
             {...rest}
           />
           {rightIcon && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
               {rightIcon}
             </div>
           )}
         </div>
         {error ? (
-          <p className="mt-1 text-xs text-red-500">{error}</p>
+          <p className="mt-1.5 text-xs text-red-500 leading-5">{error}</p>
         ) : hint ? (
-          <p className="mt-1 text-xs text-slate-400">{hint}</p>
+          <p className="mt-1.5 text-xs text-slate-400 leading-5">{hint}</p>
         ) : null}
       </div>
     );
@@ -66,7 +66,7 @@ export const InputSearch = forwardRef<HTMLInputElement, InputSearchProps>(
     return (
       <Input
         ref={ref}
-        leftIcon={<Search className="w-4 h-4" />}
+        leftIcon={<Search className="w-4.5 h-4.5" />}
         placeholder={rest.placeholder || '请输入关键词搜索...'}
         className={className}
         {...rest}
@@ -98,7 +98,7 @@ export const InputPassword = forwardRef<HTMLInputElement, InputPasswordProps>(
             className="pointer-events-auto text-slate-400 hover:text-slate-600 transition-colors"
             tabIndex={-1}
           >
-            {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {show ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
           </button>
         }
       />

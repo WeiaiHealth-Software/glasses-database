@@ -151,7 +151,7 @@ export default function BrandListPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-50/50 min-h-full relative">
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-full relative">
       <SpecCard
         title="品牌管理 · 开发规范"
         items={[

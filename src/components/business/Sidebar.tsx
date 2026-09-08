@@ -44,7 +44,7 @@ const subMenuGroups: SubMenuGroup[] = [
   },
   {
     key: 'sys',
-    label: '系统与权限管理',
+    label: '系统管理',
     icon: Settings,
     defaultOpen: true,
     children: [
@@ -92,15 +92,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
     group.children.some((child) => currentPath === child.path);
 
   return (
-    <div className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
-      <div className="h-16 flex items-center px-6 gap-3 border-b border-slate-100">
-        <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
-          <Glasses className="w-5 h-5" />
+    <div className="w-[288px] bg-white border-r border-slate-200 flex flex-col shrink-0 shadow-[1px_0_0_rgba(15,23,42,0.03)]">
+      <div className="h-[72px] flex items-center px-6 gap-3.5 border-b border-slate-100">
+        <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white shadow-sm">
+          <Glasses className="w-5.5 h-5.5" />
         </div>
-        <span className="font-bold text-slate-800 tracking-wide text-sm">镜片查询管理系统</span>
+        <div className="flex flex-col">
+          <span className="font-bold text-slate-800 tracking-wide text-base">镜片查询管理系统</span>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+      <div className="flex-1 overflow-y-auto py-5 px-4 space-y-1.5">
         {singleMenus.map((menu) => {
           const Icon = menu.icon;
           const active = isActive(menu.path);
@@ -108,13 +110,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
             <div
               key={menu.key}
               onClick={() => navigate(menu.path)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-colors ${
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl cursor-pointer transition-colors ${
                 active
-                  ? 'bg-brand-50 text-brand-600 font-bold'
-                  : 'text-slate-600 hover:bg-slate-50 font-medium'
+                  ? 'bg-brand-50 text-brand-600 font-bold shadow-[inset_2px_0_0_rgba(37,99,235,0.9)]'
+                  : 'text-slate-600 hover:bg-slate-50 font-semibold'
               }`}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-5.5 h-5.5" />
               <span className="text-sm">{menu.label}</span>
             </div>
           );
@@ -125,27 +127,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
           const open = openMenus[group.key] ?? group.defaultOpen ?? false;
           const hasActiveChild = groupHasActive(group);
           return (
-            <div className="space-y-1 mt-2" key={group.key}>
+            <div className="space-y-1.5 mt-2.5" key={group.key}>
               <div
                 onClick={() => toggleMenu(group.key)}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-colors ${
+                className={`flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer transition-colors ${
                   hasActiveChild && !open
                     ? 'text-brand-600 font-bold hover:bg-brand-50/60'
                     : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <GroupIcon className="w-5 h-5" />
-                  <span className="font-medium text-sm">{group.label}</span>
+                <div className="flex items-center gap-3.5">
+                  <GroupIcon className="w-5.5 h-5.5" />
+                  <span className="font-semibold text-sm">{group.label}</span>
                 </div>
                 {open ? (
-                  <ChevronDown className="w-4 h-4" />
+                  <ChevronDown className="w-4.5 h-4.5" />
                 ) : (
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-4.5 h-4.5" />
                 )}
               </div>
               {open && (
-                <div className="pl-11 pr-3 space-y-1">
+                <div className="pl-12 pr-3 space-y-1.5 mt-1.5">
                   {group.children.map((child) => {
                     const SubIcon = child.subIcon;
                     const active = isActive(child.path);
@@ -153,13 +155,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
                       <div
                         key={child.key}
                         onClick={() => navigate(child.path)}
-                        className={`py-2 px-3 rounded-lg text-sm cursor-pointer flex items-center gap-2 ${
+                        className={`py-2.5 px-3.5 rounded-lg text-sm cursor-pointer flex items-center gap-2.5 ${
                           active
-                            ? 'bg-brand-50 text-brand-600 font-bold'
-                            : 'text-slate-600 font-medium hover:bg-slate-50'
+                            ? 'bg-brand-50 text-brand-600 font-bold shadow-[inset_2px_0_0_rgba(37,99,235,0.6)]'
+                            : 'text-slate-600 font-semibold hover:bg-slate-50'
                         }`}
                       >
-                        {SubIcon ? <SubIcon className="w-3.5 h-3.5" /> : null}
+                        {SubIcon ? <SubIcon className="w-4 h-4" /> : null}
                         {child.label}
                       </div>
                     );
@@ -176,13 +178,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
           return (
             <div
               onClick={() => navigate(specialMenu.path)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer mt-6 border border-transparent transition-colors ${
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl cursor-pointer mt-7 border border-transparent transition-colors ${
                 active
-                  ? 'bg-brand-50 text-brand-600 border-brand-100 font-bold'
-                  : 'text-slate-600 hover:bg-slate-50 font-medium bg-slate-50'
+                  ? 'bg-brand-50 text-brand-600 border-brand-100 font-bold shadow-[inset_2px_0_0_rgba(37,99,235,0.7)]'
+                  : 'text-slate-600 hover:bg-slate-50 font-semibold bg-slate-50'
               }`}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-5.5 h-5.5" />
               <span className="text-sm">{specialMenu.label}</span>
             </div>
           );
@@ -194,13 +196,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
           return (
             <div
               onClick={() => navigate(showcaseMenu.path)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer mt-2 border border-dashed transition-colors ${
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl cursor-pointer mt-2.5 border border-dashed transition-colors ${
                 active
-                  ? 'bg-violet-50 text-violet-700 border-violet-200 font-bold'
-                  : 'text-violet-600 hover:bg-violet-50 font-medium border-violet-200 bg-white'
+                  ? 'bg-violet-50 text-violet-700 border-violet-200 font-bold shadow-[inset_2px_0_0_rgba(109,40,217,0.4)]'
+                  : 'text-violet-600 hover:bg-violet-50 font-semibold border-violet-200 bg-white'
               }`}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-5.5 h-5.5" />
               <span className="text-sm">{showcaseMenu.label}</span>
             </div>
           );
@@ -212,13 +214,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
           return (
             <div
               onClick={() => navigate(compareMenu.path)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer mt-2 border transition-colors ${
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl cursor-pointer mt-2.5 border transition-colors ${
                 active
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold'
-                  : 'text-emerald-700 hover:bg-emerald-50 font-medium border-emerald-200 bg-white'
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold shadow-[inset_2px_0_0_rgba(5,150,105,0.5)]'
+                  : 'text-emerald-700 hover:bg-emerald-50 font-semibold border-emerald-200 bg-white'
               }`}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-5.5 h-5.5" />
               <span className="text-sm">{compareMenu.label}</span>
             </div>
           );

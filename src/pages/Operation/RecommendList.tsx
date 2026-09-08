@@ -193,7 +193,7 @@ export default function RecommendListPage() {
   const slotBadgeColor = slot === 'expert' ? 'violet' : 'brand';
 
   return (
-    <div className="space-y-4">
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-full">
       <SpecCard
         title="首页推荐位 · 操作规范"
         items={[

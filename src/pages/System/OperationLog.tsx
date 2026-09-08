@@ -123,7 +123,7 @@ export default function OperationLogPage() {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-full">
       <SpecCard
         title="操作日志 · 使用规范"
         items={[

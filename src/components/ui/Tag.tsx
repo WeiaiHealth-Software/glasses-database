@@ -38,19 +38,19 @@ export const Tag: React.FC<TagProps> = ({
   size = 'sm',
 }) => {
   const cls = colorMap[color];
-  const pad = size === 'xs' ? 'px-2 py-0.5 text-[10px] rounded' : 'px-2.5 py-1 text-xs rounded-md';
+  const pad = size === 'xs' ? 'px-2 py-1 text-[11px] rounded-lg leading-none' : 'px-3 py-1.5 text-xs rounded-xl font-semibold leading-tight';
   return (
     <span
-      className={`inline-flex items-center gap-1 font-bold border ${pad} ${cls.bg} ${cls.text} ${cls.border} ${className}`}
+      className={`inline-flex items-center gap-1.5 border ${pad} ${cls.bg} ${cls.text} ${cls.border} ${className}`}
     >
       {children}
       {onClose && (
         <button
           type="button"
           onClick={onClose}
-          className="ml-0.5 -mr-1 rounded-sm hover:bg-black/10 p-0.5 transition-colors"
+          className="ml-0.5 -mr-0.5 rounded-md hover:bg-black/10 p-0.5 transition-colors"
         >
-          <X className="w-3 h-3" />
+          <X className="w-3.5 h-3.5" />
         </button>
       )}
     </span>

@@ -151,7 +151,7 @@ export default function ComparePage() {
   }, [rows]);
 
   return (
-    <div className="space-y-4">
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-full">
       <SpecCard
         title="镜片横向对比工具 · 使用规范"
         items={[

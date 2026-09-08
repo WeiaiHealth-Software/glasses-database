@@ -90,7 +90,7 @@ export default function MiniProgramPreviewPage() {
   };
 
   return (
-    <div className="p-6 flex justify-center items-start min-h-[calc(100vh-120px)] bg-slate-100/50">
+    <div className="p-8 flex justify-center items-start min-h-[calc(100vh-120px)] gap-6 bg-slate-50/50">
       <div
         className="bg-white rounded-[3rem] border-[8px] border-slate-800 shadow-2xl overflow-hidden relative flex flex-col shrink-0"
         style={{ width: '375px', height: '812px' }}

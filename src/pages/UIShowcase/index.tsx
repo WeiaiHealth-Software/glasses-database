@@ -96,7 +96,7 @@ export default function UIShowcasePage() {
   ];
 
   return (
-    <div className="p-6 space-y-8 bg-slate-50/50">
+    <div className="p-8 space-y-10 bg-slate-50/50">
       <SpecCard
         title="UI 组件库示例 · 对齐 DESIGN.md 规范"
         items={[

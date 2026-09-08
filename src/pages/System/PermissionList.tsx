@@ -218,7 +218,7 @@ export default function PermissionListPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-full">
       <SpecCard
         title="权限角色 · 配置规范"
         items={[

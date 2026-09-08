@@ -24,9 +24,9 @@ export interface ModalProps {
 
 const sizeMap = {
   sm: 'max-w-sm',
-  md: 'max-w-md',
-  lg: 'max-w-2xl',
-  xl: 'max-w-4xl',
+  md: 'max-w-lg',
+  lg: 'max-w-3xl',
+  xl: 'max-w-5xl',
 };
 
 const iconMap: Record<Exclude<ModalType, 'default'>, { Icon: typeof X; color: string; bg: string }> = {
@@ -72,7 +72,7 @@ export const Modal: React.FC<ModalProps> = ({
   const iconInfo = type !== 'default' ? iconMap[type] : null;
 
   const defaultFooter = !hideFooter && (
-    <div className="flex justify-end gap-2">
+    <div className="flex justify-end gap-3">
       {!hideCancel && (
         <Button variant="default" onClick={onClose} size="md">
           {cancelText}
@@ -90,36 +90,36 @@ export const Modal: React.FC<ModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6">
       <div
         className="absolute inset-0 bg-slate-900/35 backdrop-blur-sm animate-in fade-in duration-150"
         onClick={onClose}
       />
       <div
-        className={`relative w-full ${sizeMap[size]} bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150`}
+        className={`relative w-full ${sizeMap[size]} bg-white rounded-[24px] shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150`}
       >
-        <div className="px-6 pt-5 pb-4 flex items-start gap-3 border-b border-slate-100">
+        <div className="px-7 pt-6 pb-5 flex items-start gap-4 border-b border-slate-100">
           {iconInfo && (
-            <div className={`shrink-0 w-10 h-10 rounded-full ${iconInfo.bg} flex items-center justify-center`}>
-              <iconInfo.Icon className={`w-5 h-5 ${iconInfo.color}`} />
+            <div className={`shrink-0 w-11 h-11 rounded-2xl ${iconInfo.bg} flex items-center justify-center`}>
+              <iconInfo.Icon className={`w-5.5 h-5.5 ${iconInfo.color}`} />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-slate-800 text-base leading-6">{title}</h3>
-            {description && <p className="mt-1 text-sm text-slate-500 leading-5">{description}</p>}
+            <h3 className="font-bold text-slate-800 text-lg leading-7 tracking-tight">{title}</h3>
+            {description && <p className="mt-1.5 text-sm text-slate-500 leading-6">{description}</p>}
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 -mr-1 -mt-1 w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="shrink-0 -mr-1.5 -mt-1.5 w-10 h-10 rounded-2xl flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
           >
-            <X className="w-4.5 h-4.5" />
+            <X className="w-5 h-5" />
           </button>
         </div>
         {children && (
-          <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">{children}</div>
+          <div className="px-7 py-6 max-h-[70vh] overflow-y-auto">{children}</div>
         )}
-        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+        <div className="px-7 py-5 border-t border-slate-100 bg-slate-50/50">
           {footer ?? defaultFooter}
         </div>
       </div>
