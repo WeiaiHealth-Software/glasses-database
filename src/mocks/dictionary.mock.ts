@@ -1,0 +1,98 @@
+import type { Brand, TechTag } from '../types/dictionary';
+
+export const mockBrandList: Brand[] = [
+  {
+    id: 'b_zeiss',
+    name: '蔡司',
+    fullName: '卡尔蔡司光学 (Carl Zeiss Vision)',
+    sortWeight: 100,
+    enabled: true,
+    lensCount: 18,
+    createdAt: '2026-01-01 00:00',
+    updatedAt: '2026-09-01 10:00',
+  },
+  {
+    id: 'b_hoya',
+    name: '豪雅',
+    fullName: '豪雅光学 (HOYA Vision Care)',
+    sortWeight: 95,
+    enabled: true,
+    lensCount: 12,
+    createdAt: '2026-01-01 00:00',
+    updatedAt: '2026-09-01 10:00',
+  },
+  {
+    id: 'b_essilor',
+    name: '依视路',
+    fullName: '依视路陆逊梯卡 (EssilorLuxottica)',
+    sortWeight: 90,
+    enabled: true,
+    lensCount: 15,
+    createdAt: '2026-01-01 00:00',
+    updatedAt: '2026-09-01 10:00',
+  },
+  {
+    id: 'b_mingyue',
+    name: '明月',
+    fullName: '明月镜片 (MingYue Optics)',
+    sortWeight: 85,
+    enabled: true,
+    lensCount: 8,
+    createdAt: '2026-01-01 00:00',
+    updatedAt: '2026-09-01 10:00',
+  },
+  {
+    id: 'b_aola',
+    name: '奥拉',
+    fullName: '奥拉光学 (AOLA Optics) · 蝶适 DISC',
+    sortWeight: 80,
+    enabled: true,
+    lensCount: 4,
+    createdAt: '2026-01-01 00:00',
+    updatedAt: '2026-09-01 10:00',
+  },
+  {
+    id: 'b_rothschild',
+    name: '万新',
+    fullName: '万新光学',
+    sortWeight: 75,
+    enabled: true,
+    lensCount: 6,
+    createdAt: '2026-01-01 00:00',
+    updatedAt: '2026-09-01 10:00',
+  },
+  {
+    id: 'b_sunrun',
+    name: '舜光',
+    fullName: '舜光医疗 · 多点离焦',
+    sortWeight: 70,
+    enabled: false,
+    lensCount: 2,
+    createdAt: '2026-01-01 00:00',
+    updatedAt: '2026-09-01 10:00',
+  },
+];
+
+export const mockTechTagList: TechTag[] = [
+  { id: 't_md', name: '多点离焦', category: 'tech_category', sortWeight: 100, enabled: true, lensCount: 56, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 't_ac', name: '环带微柱镜', category: 'tech_category', sortWeight: 95, enabled: true, lensCount: 18, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 't_honey', name: '蜂窝点阵', category: 'tech_category', sortWeight: 90, enabled: true, lensCount: 12, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 't_pd', name: '周边离焦', category: 'tech_category', sortWeight: 85, enabled: true, lensCount: 24, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 't_prog', name: '渐进多焦点', category: 'tech_category', sortWeight: 80, enabled: true, lensCount: 10, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 't_bifocal', name: '双光棱镜', category: 'tech_category', sortWeight: 75, enabled: true, lensCount: 6, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 't_ok', name: 'OK镜', category: 'tech_category', sortWeight: 70, enabled: true, lensCount: 8, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 't_soft', name: '离焦软镜', category: 'tech_category', sortWeight: 65, enabled: true, lensCount: 4, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+
+  { id: 'ts_dot', name: '点阵离焦', category: 'tech_structure', sortWeight: 100, enabled: true, lensCount: 40, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 'ts_ring', name: '同心环带', category: 'tech_structure', sortWeight: 95, enabled: true, lensCount: 28, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 'ts_honeycomb', name: '蜂窝离焦', category: 'tech_structure', sortWeight: 90, enabled: true, lensCount: 12, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 'ts_cont', name: '连续离焦', category: 'tech_structure', sortWeight: 85, enabled: true, lensCount: 20, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+
+  { id: 'mc_dura', name: '钻立方 (蔡司)', category: 'coating', sortWeight: 100, enabled: true, lensCount: 18, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 'mc_hi', name: 'Hi-Lux (豪雅)', category: 'coating', sortWeight: 95, enabled: true, lensCount: 12, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 'mc_crizal', name: '钻晶 (依视路)', category: 'coating', sortWeight: 90, enabled: true, lensCount: 15, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 'mc_asmc', name: '超发水膜 (通用)', category: 'coating', sortWeight: 85, enabled: true, lensCount: 48, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  { id: 'mc_bp', name: '防蓝光膜层', category: 'coating', sortWeight: 80, enabled: true, lensCount: 30, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+];
+
+export const coatingList = mockTechTagList.filter((t) => t.category === 'coating');
