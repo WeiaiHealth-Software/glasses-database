@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Plus, Download, Filter, Eye, Star, StarOff } from 'lucide-react';
+import { Plus, Download, Filter, Eye, Star, StarOff, X } from 'lucide-react';
 import { SpecCard, ToolbarCard, ToolbarDivider } from '../../components/ui/Cards';
 import { InputSearch } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
@@ -9,7 +9,7 @@ import { Tag } from '../../components/ui/Tag';
 import { Table, Pagination, ActionEditBtn, ActionDeleteBtn } from '../../components/ui/Table';
 import { LensDrawer } from '../../components/business/LensDrawer';
 import { LensFormModal } from '../../components/business/LensFormModal';
-import { ConfirmModal } from '../../components/ui/Modal';
+import { ConfirmModal, Modal } from '../../components/ui/Modal';
 import type { Lens } from '../../types/lens';
 import type { SelectOption } from '../../components/ui/Select';
 import { LensService, nameOfBrand, nameOfTech } from '../../services/lens.service';
@@ -29,6 +29,10 @@ export default function LensDatabasePage() {
   const [onlyRecommended, setOnlyRecommended] = useState(false);
   const [brandOptions, setBrandOptions] = useState<SelectOption[]>([]);
   const [techOptions, setTechOptions] = useState<SelectOption[]>([]);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [draftBrand, setDraftBrand] = useState('all');
+  const [draftTech, setDraftTech] = useState('all');
+  const [draftRecommend, setDraftRecommend] = useState(false);
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -70,6 +74,14 @@ export default function LensDatabasePage() {
     const t = setTimeout(() => setToast(null), 2200);
     return () => clearTimeout(t);
   }, [toast]);
+
+  useEffect(() => {
+    if (advancedOpen) {
+      setDraftBrand(brandFilter);
+      setDraftTech(techFilter);
+      setDraftRecommend(onlyRecommended);
+    }
+  }, [advancedOpen, brandFilter, techFilter, onlyRecommended]);
 
   const ok = (msg: string) => setToast({ type: 'success', msg });
   const err = (msg: string) => setToast({ type: 'error', msg });
@@ -141,9 +153,9 @@ export default function LensDatabasePage() {
       />
 
       <ToolbarCard>
-        <div className="flex flex-wrap items-center gap-3 flex-1">
-          <div className="w-72">
-            <InputSearch placeholder="镜片/品牌/技术/系列搜索..." value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+        <div className="flex items-center gap-3 flex-1">
+          <div className="w-72 shrink-0">
+            <InputSearch size="sm" placeholder="镜片/品牌/技术/系列搜索..." value={keyword} onChange={(e) => setKeyword(e.target.value)} />
           </div>
           <RadioGroup
             variant="button"
@@ -155,19 +167,35 @@ export default function LensDatabasePage() {
               { label: '已下架', value: 'offline' },
             ]}
           />
-          <Select size="sm" options={brandOptions} value={brandFilter} onChange={setBrandFilter} placeholder="品牌" />
-          <Select size="sm" options={techOptions} value={techFilter} onChange={setTechFilter} placeholder="技术大类" />
-          <Switch label="仅看首页推荐" checked={onlyRecommended} onChange={setOnlyRecommended} />
-          <Button size="sm" variant="ghost" leftIcon={<Filter className="w-4 h-4" />} onClick={() => {
-            setKeyword(''); setBrandFilter('all'); setTechFilter('all'); setOnlyRecommended(false); setStatusTab('all'); setPage(1);
-          }}>重置</Button>
+          <Button
+            size="sm"
+            variant="default"
+            leftIcon={<Filter className="w-4 h-4" />}
+            onClick={() => {
+              setAdvancedOpen(true);
+            }}
+          >
+            高级筛选
+            {(brandFilter !== 'all' || techFilter !== 'all' || onlyRecommended) && (
+              <span className="ml-1.5 w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
+            )}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setKeyword(''); setBrandFilter('all'); setTechFilter('all'); setOnlyRecommended(false); setStatusTab('all'); setPage(1);
+            }}
+          >
+            重置
+          </Button>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="default" leftIcon={<Download className="w-4 h-4" />}>
-            导出数据
+          <Button size="sm" variant="default" leftIcon={<Download className="w-4 h-4" />}>
+            导出
           </Button>
           <ToolbarDivider />
-          <Button variant="primary" leftIcon={<Plus className="w-4 h-4" />} onClick={openAdd}>
+          <Button size="sm" variant="primary" leftIcon={<Plus className="w-4 h-4" />} onClick={openAdd}>
             录入新镜片
           </Button>
         </div>
@@ -363,6 +391,65 @@ export default function LensDatabasePage() {
         }
         confirmText="确认删除"
       />
+
+      <Modal
+        open={advancedOpen}
+        onClose={() => setAdvancedOpen(false)}
+        title="高级筛选"
+        size="sm"
+        confirmText="应用筛选"
+        cancelText="重置"
+        onConfirm={() => {
+          setBrandFilter(draftBrand);
+          setTechFilter(draftTech);
+          setOnlyRecommended(draftRecommend);
+          setPage(1);
+          setAdvancedOpen(false);
+        }}
+        footer={
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="default"
+              size="md"
+              onClick={() => {
+                setDraftBrand('all');
+                setDraftTech('all');
+                setDraftRecommend(false);
+              }}
+            >
+              重置
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => {
+                setBrandFilter(draftBrand);
+                setTechFilter(draftTech);
+                setOnlyRecommended(draftRecommend);
+                setPage(1);
+                setAdvancedOpen(false);
+              }}
+            >
+              应用筛选
+            </Button>
+          </div>
+        }
+        hideFooter
+      >
+        <div className="space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">品牌</label>
+            <Select options={brandOptions} value={draftBrand} onChange={setDraftBrand} placeholder="全部品牌" />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">技术大类</label>
+            <Select options={techOptions} value={draftTech} onChange={setDraftTech} placeholder="全部技术" />
+          </div>
+          <div>
+            <Switch label="仅看首页推荐" checked={draftRecommend} onChange={setDraftRecommend} />
+          </div>
+        </div>
+      </Modal>
 
       {toast && (
         <div

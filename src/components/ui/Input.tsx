@@ -1,6 +1,8 @@
 import React, { forwardRef, InputHTMLAttributes } from 'react';
 import { Search, Eye, EyeOff } from 'lucide-react';
 
+export type InputSize = 'sm' | 'md';
+
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
@@ -8,11 +10,28 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   wrapperClassName?: string;
+  size?: InputSize;
 }
 
+const inputSizeMap: Record<InputSize, string> = {
+  sm: 'h-9 rounded-xl',
+  md: 'h-10 rounded-xl',
+};
+const padLeftMap: Record<InputSize, { withIcon: string; normal: string }> = {
+  sm: { withIcon: 'pl-10', normal: 'pl-4' },
+  md: { withIcon: 'pl-11', normal: 'pl-4.5' },
+};
+const padRightMap: Record<InputSize, { withIcon: string; normal: string }> = {
+  sm: { withIcon: 'pr-10', normal: 'pr-4' },
+  md: { withIcon: 'pr-11', normal: 'pr-4.5' },
+};
+
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, leftIcon, rightIcon, className = '', wrapperClassName = '', id, ...rest }, ref) => {
+  ({ label, error, hint, leftIcon, rightIcon, className = '', wrapperClassName = '', id, size = 'md', ...rest }, ref) => {
     const inputId = id || rest.name;
+    const sz = inputSizeMap[size];
+    const pl = leftIcon ? padLeftMap[size].withIcon : padLeftMap[size].normal;
+    const pr = rightIcon ? padRightMap[size].withIcon : padRightMap[size].normal;
     return (
       <div className={`w-full ${wrapperClassName}`}>
         {label && (
@@ -23,16 +42,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
               {leftIcon}
             </div>
           )}
           <input
             ref={ref}
             id={inputId}
-            className={`w-full h-12 rounded-2xl border bg-slate-50 text-sm outline-none transition-all placeholder:text-slate-400 ${
-              leftIcon ? 'pl-11' : 'pl-4.5'
-            } ${rightIcon ? 'pr-11' : 'pr-4.5'} ${
+            className={`w-full ${sz} border bg-slate-50 text-sm outline-none transition-all placeholder:text-slate-400 ${pl} ${pr} ${
               error
                 ? 'border-red-300 focus:ring-1 focus:ring-red-500 focus:border-red-500'
                 : 'border-slate-200 hover:border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white focus:shadow-[0_2px_8px_rgba(37,99,235,0.06)]'
@@ -40,7 +57,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             {...rest}
           />
           {rightIcon && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
               {rightIcon}
             </div>
           )}

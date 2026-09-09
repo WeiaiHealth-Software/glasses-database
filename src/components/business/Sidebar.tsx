@@ -98,7 +98,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
           <Glasses className="w-5.5 h-5.5" />
         </div>
         <div className="flex flex-col">
-          <span className="font-bold text-slate-800 tracking-wide text-base">镜片查询管理系统</span>
+          <span className="font-bold text-slate-800 tracking-wide text-lg">镜片查询管理系统</span>
         </div>
       </div>
 
@@ -117,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
               }`}
             >
               <Icon className="w-5.5 h-5.5" />
-              <span className="text-sm">{menu.label}</span>
+              <span className="text-base">{menu.label}</span>
             </div>
           );
         })}
@@ -138,7 +138,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
               >
                 <div className="flex items-center gap-3.5">
                   <GroupIcon className="w-5.5 h-5.5" />
-                  <span className="font-semibold text-sm">{group.label}</span>
+                  <span className="font-semibold text-base">{group.label}</span>
                 </div>
                 {open ? (
                   <ChevronDown className="w-4.5 h-4.5" />
@@ -147,21 +147,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
                 )}
               </div>
               {open && (
-                <div className="pl-12 pr-3 space-y-1.5 mt-1.5">
+                <div className="pl-8 pr-3 space-y-1.5 mt-1.5">
                   {group.children.map((child) => {
-                    const SubIcon = child.subIcon;
                     const active = isActive(child.path);
                     return (
                       <div
                         key={child.key}
                         onClick={() => navigate(child.path)}
-                        className={`py-2.5 px-3.5 rounded-lg text-sm cursor-pointer flex items-center gap-2.5 ${
+                        className={`py-2.5 px-3.5 rounded-lg text-base cursor-pointer ${
                           active
                             ? 'bg-brand-50 text-brand-600 font-bold shadow-[inset_2px_0_0_rgba(37,99,235,0.6)]'
                             : 'text-slate-600 font-semibold hover:bg-slate-50'
                         }`}
                       >
-                        {SubIcon ? <SubIcon className="w-4 h-4" /> : null}
                         {child.label}
                       </div>
                     );
@@ -172,20 +170,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
           );
         })}
 
+        <div className="my-5 mx-2 border-t border-slate-200" />
+
         {(() => {
           const Icon = specialMenu.icon;
           const active = isActive(specialMenu.path);
           return (
             <div
               onClick={() => navigate(specialMenu.path)}
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl cursor-pointer mt-7 border border-transparent transition-colors ${
+              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl cursor-pointer border border-transparent transition-colors ${
                 active
                   ? 'bg-brand-50 text-brand-600 border-brand-100 font-bold shadow-[inset_2px_0_0_rgba(37,99,235,0.7)]'
                   : 'text-slate-600 hover:bg-slate-50 font-semibold bg-slate-50'
               }`}
             >
               <Icon className="w-5.5 h-5.5" />
-              <span className="text-sm">{specialMenu.label}</span>
+              <span className="text-base">{specialMenu.label}</span>
             </div>
           );
         })()}
@@ -203,7 +203,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
               }`}
             >
               <Icon className="w-5.5 h-5.5" />
-              <span className="text-sm">{showcaseMenu.label}</span>
+              <span className="text-base">{showcaseMenu.label}</span>
             </div>
           );
         })()}
@@ -221,7 +221,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
               }`}
             >
               <Icon className="w-5.5 h-5.5" />
-              <span className="text-sm">{compareMenu.label}</span>
+              <span className="text-base">{compareMenu.label}</span>
             </div>
           );
         })()}

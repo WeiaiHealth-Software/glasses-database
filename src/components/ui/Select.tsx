@@ -56,7 +56,7 @@ export const Select: React.FC<SelectProps> = ({
     ? options.filter((o) => o.label.toLowerCase().includes(keyword.toLowerCase()))
     : options;
 
-  const h = size === 'sm' ? 'h-9' : 'h-11';
+  const h = size === 'sm' ? 'h-9' : 'h-10';
 
   return (
     <div className={`w-full ${wrapperClassName}`} ref={ref}>

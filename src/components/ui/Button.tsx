@@ -13,9 +13,9 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'h-10 px-3.5 text-xs rounded-xl',
-  md: 'h-12 px-5 text-sm rounded-xl',
-  lg: 'h-[52px] px-6 text-base rounded-2xl',
+  sm: 'h-9 px-3.5 text-xs rounded-xl',
+  md: 'h-10 px-5 text-sm rounded-xl',
+  lg: 'h-12 px-6 text-base rounded-2xl',
 };
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -28,7 +28,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   danger:
     'bg-red-500 text-white hover:bg-red-600 active:bg-red-700 font-bold shadow-sm',
   icon:
-    'h-11 w-11 p-0 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-brand-600 flex items-center justify-center border border-slate-200 bg-white shadow-sm',
+    'h-10 w-10 p-0 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-brand-600 flex items-center justify-center border border-slate-200 bg-white shadow-sm',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
