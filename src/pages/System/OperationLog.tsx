@@ -1,11 +1,10 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  RotateCcw, Filter, ClipboardList, MonitorCog, RefreshCw,
+import { Filter, ClipboardList, MonitorCog,
   LogIn, Plus, Pencil, Trash2, Download,
 } from 'lucide-react';
 import { SpecCard, ToolbarCard, ToolbarDivider } from '../../components/ui/Cards';
 import { InputSearch, Input } from '../../components/ui/Input';
-import { Button } from '../../components/ui/Button';
 import { Tag } from '../../components/ui/Tag';
 import { Table, Pagination } from '../../components/ui/Table';
 import { Select } from '../../components/ui/Select';
@@ -104,15 +103,6 @@ export default function OperationLogPage() {
     void loadStats();
   }, [loadStats]);
 
-  const reset = () => {
-    setKeyword('');
-    setModuleFilter('all');
-    setActionFilter('all');
-    setDateFrom('');
-    setDateTo('');
-    setPage(1);
-  };
-
   const statCards = [
     { label: '总操作数', value: stats.totalOps, icon: ClipboardList, color: 'brand' as const },
     { label: '活跃操作人', value: stats.uniqueOps, icon: MonitorCog, color: 'violet' as const },
@@ -161,13 +151,13 @@ export default function OperationLogPage() {
       </div>
 
       <ToolbarCard>
-        <div className="flex flex-wrap items-center gap-2 min-w-0">
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
+        <div className="flex flex-wrap items-center gap-3 flex-1">
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-800 shrink-0">
             <Filter className="w-4 h-4 text-brand-600" />
             筛选
           </div>
           <ToolbarDivider />
-          <div className="w-64">
+          <div className="w-64 shrink-0">
             <InputSearch
               placeholder="操作人 / 对象 / 详情关键词"
               value={keyword}
@@ -175,75 +165,75 @@ export default function OperationLogPage() {
               onSearch={() => setPage(1)}
             />
           </div>
-          <Select
-            size="md"
-            placeholder="模块"
-            wrapperClassName="w-36"
-            value={moduleFilter}
-            onChange={(v) => {
-              setModuleFilter(v);
-              setPage(1);
-            }}
-            options={[
-              { value: 'all', label: '全部模块' },
-              ...OPERATION_MODULES.map((m) => ({ value: m, label: m })),
-            ]}
-          />
-          <Select
-            size="md"
-            placeholder="动作"
-            wrapperClassName="w-32"
-            value={actionFilter}
-            onChange={(v) => {
-              setActionFilter(v as OperationAction | 'all');
-              setPage(1);
-            }}
-            options={[
-              { value: 'all', label: '全部动作' },
-              ...(Object.keys(ACTION_LABEL) as OperationAction[]).map((a) => ({
-                value: a,
-                label: ACTION_LABEL[a],
-              })),
-            ]}
-          />
+          <div className="w-28 shrink-0">
+            <Select
+              size="md"
+              placeholder="模块"
+              value={moduleFilter}
+              onChange={(v) => {
+                setModuleFilter(v);
+                setPage(1);
+              }}
+              options={[
+                { value: 'all', label: '全部模块' },
+                ...OPERATION_MODULES.map((m) => ({ value: m, label: m })),
+              ]}
+            />
+          </div>
+          <div className="w-28 shrink-0">
+            <Select
+              size="md"
+              placeholder="动作"
+              value={actionFilter}
+              onChange={(v) => {
+                setActionFilter(v as OperationAction | 'all');
+                setPage(1);
+              }}
+              options={[
+                { value: 'all', label: '全部动作' },
+                ...(Object.keys(ACTION_LABEL) as OperationAction[]).map((a) => ({
+                  value: a,
+                  label: ACTION_LABEL[a],
+                })),
+              ]}
+            />
+          </div>
           <ToolbarDivider />
-          <Input
-            type="date"
-            className="w-40 h-11 px-3"
-            value={dateFrom}
-            onChange={(e) => {
-              setDateFrom(e.target.value);
-              setPage(1);
-            }}
-          />
-          <span className="text-xs text-slate-400">至</span>
-          <Input
-            type="date"
-            className="w-40 h-11 px-3"
-            value={dateTo}
-            onChange={(e) => {
-              setDateTo(e.target.value);
-              setPage(1);
-            }}
-          />
+          <div className="w-36 shrink-0">
+            <Input
+              type="date"
+              size="sm"
+              value={dateFrom}
+              onChange={(e) => {
+                setDateFrom(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <span className="text-xs text-slate-400 shrink-0">至</span>
+          <div className="w-36 shrink-0">
+            <Input
+              type="date"
+              size="sm"
+              value={dateTo}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
           <ToolbarDivider />
-          <Button variant="icon" onClick={reset} title="重置筛选">
-            <RotateCcw className="w-4 h-4" />
-          </Button>
-          <Button variant="icon" onClick={() => void load()} title="刷新">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
         </div>
-        <div className="text-xs text-slate-500">
+        <div className="text-xs text-slate-500 whitespace-nowrap">
           共 <span className="font-bold text-brand-600 mx-1">{total}</span> 条记录
           · 只读不可修改
         </div>
       </ToolbarCard>
 
-      <Table<IOperationLog>
+      <Table<IOperationLog & Record<string, unknown>>
         rowKey="id"
         loading={loading}
-        dataSource={rows}
+        dataSource={rows as (IOperationLog & Record<string, unknown>)[]}
         hoverable
         maxHeight={520}
         columns={[
@@ -341,7 +331,7 @@ export default function OperationLogPage() {
         ]}
       />
       <Pagination
-        page={page}
+        current={page}
         pageSize={pageSize}
         total={total}
         onChange={(p, sz) => {

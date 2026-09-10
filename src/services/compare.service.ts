@@ -18,7 +18,8 @@ export interface CompareRow {
 }
 
 export function formatRate(value?: string): string {
-  return value ? `${value}%` : '—';
+  if (!value) return '—';
+  return value.includes('%') ? value : `${value}%`;
 }
 export function formatAge(min?: number, max?: number): string {
   if (min != null && max != null) return `${min} – ${max} 岁`;
@@ -410,7 +411,7 @@ export function buildParentSections(lenses: Lens[]): ParentSection[] {
             const r = l.coreParams.myopiaControlRate;
             const src = l.coreParams.myopiaControlSource;
             if (!r) return '暂无公开临床数据';
-            return `${r}%（来源：${src ?? '未标注，请谨慎'}）`;
+            return `${r}（来源：${src ?? '未标注，请谨慎'}）`;
           }),
           warnPerLens: lenses.map(
             (l) => !!l.coreParams.myopiaControlRate && !l.coreParams.myopiaControlSource,

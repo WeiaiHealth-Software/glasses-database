@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Plus, ShieldCheck, KeyRound, Ban, UserPlus, RefreshCw,
+  Plus, ShieldCheck, KeyRound, Ban, UserPlus,
 } from 'lucide-react';
 import { SpecCard, ToolbarCard, ToolbarDivider } from '../../components/ui/Cards';
 import { InputSearch, Input } from '../../components/ui/Input';
@@ -194,8 +195,8 @@ export default function UserListPage() {
       />
 
       <ToolbarCard>
-        <div className="flex flex-wrap items-center gap-2 min-w-0">
-          <div className="w-64">
+        <div className="flex flex-wrap items-center gap-3 flex-1">
+          <div className="w-72 shrink-0">
             <InputSearch
               placeholder="搜索账号 / 显示名"
               value={keyword}
@@ -203,52 +204,51 @@ export default function UserListPage() {
               onSearch={() => setPage(1)}
             />
           </div>
-          <Select
-            size="md"
-            searchable
-            placeholder="角色"
-            wrapperClassName="w-36"
-            value={roleFilter}
-            onChange={(v) => {
-              setRoleFilter(v as AdminRole | 'all');
-              setPage(1);
-            }}
-            options={[
-              { value: 'all', label: '全部角色' },
-              ...roleOptions,
-            ]}
-          />
-          <Select
-            size="md"
-            placeholder="状态"
-            wrapperClassName="w-32"
-            value={statusFilter}
-            onChange={(v) => {
-              setStatusFilter(v as AdminStatus | 'all');
-              setPage(1);
-            }}
-            options={[
-              { value: 'all', label: '全部状态' },
-              { value: 'active', label: '已激活' },
-              { value: 'frozen', label: '已冻结' },
-            ]}
-          />
+          <div className="w-32 shrink-0">
+            <Select
+              size="md"
+              searchable
+              placeholder="角色"
+              value={roleFilter}
+              onChange={(v) => {
+                setRoleFilter(v as AdminRole | 'all');
+                setPage(1);
+              }}
+              options={[
+                { value: 'all', label: '全部角色' },
+                ...roleOptions,
+              ]}
+            />
+          </div>
+          <div className="w-28 shrink-0">
+            <Select
+              size="md"
+              placeholder="状态"
+              value={statusFilter}
+              onChange={(v) => {
+                setStatusFilter(v as AdminStatus | 'all');
+                setPage(1);
+              }}
+              options={[
+                { value: 'all', label: '全部状态' },
+                { value: 'active', label: '已激活' },
+                { value: 'frozen', label: '已冻结' },
+              ]}
+            />
+          </div>
           <ToolbarDivider />
-          <Button variant="icon" onClick={() => void load()} title="刷新">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
           <Button variant="primary" leftIcon={<UserPlus className="w-4 h-4" />} onClick={openAdd}>
             新增管理员
           </Button>
         </div>
       </ToolbarCard>
 
-      <Table<AdminUser>
+      <Table<AdminUser & Record<string, unknown>>
         rowKey="id"
         loading={loading}
-        dataSource={rows}
+        dataSource={rows as (AdminUser & Record<string, unknown>)[]}
         hoverable
         columns={[
           {
@@ -280,7 +280,7 @@ export default function UserListPage() {
             title: '角色',
             width: 140,
             render: (_v, u) => (
-              <Tag color={ROLE_COLOR[u.role]} size="md">
+              <Tag color={ROLE_COLOR[u.role]} size="xs">
                 {ROLE_LABEL[u.role]}
               </Tag>
             ),
@@ -351,7 +351,7 @@ export default function UserListPage() {
         ]}
       />
       <Pagination
-        page={page}
+        current={page}
         pageSize={pageSize}
         total={total}
         onChange={(p, sz) => {
