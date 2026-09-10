@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState, useCallback } from 'react';
 import { Plus, Download, Filter, Eye, Star, StarOff, X } from 'lucide-react';
 import { SpecCard, ToolbarCard, ToolbarDivider } from '../../components/ui/Cards';
@@ -40,6 +42,8 @@ export default function LensDatabasePage() {
   const [formLens, setFormLens] = useState<Lens | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Lens | null>(null);
+  const [recommendOpen, setRecommendOpen] = useState(false);
+  const [recommendTarget, setRecommendTarget] = useState<Lens | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
   const load = useCallback(async () => {
@@ -103,6 +107,10 @@ export default function LensDatabasePage() {
     setDeleteTarget(lens);
     setDeleteOpen(true);
   };
+  const confirmRecommend = (lens: Lens) => {
+    setRecommendTarget(lens);
+    setRecommendOpen(true);
+  };
 
   const handleSubmit = async (payload: Omit<Lens, 'id' | 'createdAt' | 'updatedAt'>, id?: string) => {
     if (id) {
@@ -139,6 +147,12 @@ export default function LensDatabasePage() {
     if (res.code === 0) ok(lens.management.isHomepageRecommended ? '已取消首页推荐' : '已加入首页推荐');
     else err(res.message);
     void load();
+  };
+  const handleRecommend = async () => {
+    if (!recommendTarget) return;
+    await toggleRecommend(recommendTarget);
+    setRecommendOpen(false);
+    setRecommendTarget(null);
   };
 
   return (
@@ -202,7 +216,7 @@ export default function LensDatabasePage() {
       </ToolbarCard>
 
       <div className="space-y-0">
-        <Table<Lens>
+        <Table<Lens & Record<string, unknown>>
           loading={loading}
           columns={[
             {
@@ -275,7 +289,7 @@ export default function LensDatabasePage() {
               key: 'status',
               title: '状态',
               render: (_v, r) => (
-                <div className="flex flex-col gap-1.5">
+                <div className="grid grid-cols-2 gap-1.5 w-fit">
                   {r.management.status === 'online' ? (
                     <Tag color="emerald" size="sm">已上架</Tag>
                   ) : (
@@ -291,12 +305,6 @@ export default function LensDatabasePage() {
               ),
             },
             {
-              key: 'updatedAt',
-              title: '更新时间',
-              className: 'text-slate-500 text-xs',
-              render: (_v, r) => r.management.updatedAt,
-            },
-            {
               key: 'actions',
               title: '操作',
               align: 'right',
@@ -310,7 +318,7 @@ export default function LensDatabasePage() {
                     详情
                   </button>
                   <button
-                    onClick={() => toggleRecommend(r)}
+                    onClick={() => confirmRecommend(r)}
                     title={r.management.isHomepageRecommended ? '取消首页推荐' : '加入首页推荐'}
                     className={`cursor-pointer w-9 h-9 rounded-md flex items-center justify-center transition-colors ${
                       r.management.isHomepageRecommended
@@ -330,7 +338,7 @@ export default function LensDatabasePage() {
               ),
             },
           ]}
-          dataSource={rows}
+          dataSource={rows as (Lens & Record<string, unknown>)[]}
           rowKey="id"
           hoverable
           className="rounded-none border-t-0"
@@ -373,19 +381,60 @@ export default function LensDatabasePage() {
       />
 
       <ConfirmModal
+        open={recommendOpen}
+        onClose={() => {
+          setRecommendOpen(false);
+          setRecommendTarget(null);
+        }}
+        onConfirm={handleRecommend}
+        size="md"
+        title={
+          recommendTarget?.management.isHomepageRecommended
+            ? '确认取消首页推荐？'
+            : '确认加入首页推荐？'
+        }
+        description={
+          recommendTarget ? (
+            recommendTarget.management.isHomepageRecommended ? (
+              <span>
+                镜片「<span className="font-bold text-slate-700">{recommendTarget.baseInfo.fullName}</span>
+                」将从小程序首页推荐位<strong>移除</strong>，用户在首页将不再优先看到这款产品。
+              </span>
+            ) : (
+              <span>
+                镜片「<span className="font-bold text-slate-700">{recommendTarget.baseInfo.fullName}</span>
+                」将被添加到小程序<strong>首页推荐位</strong>，用户打开小程序即可优先看到。请确认该镜片已上架且信息准确无误。
+              </span>
+            )
+          ) : undefined
+        }
+        confirmText={
+          recommendTarget?.management.isHomepageRecommended
+            ? '确认取消'
+            : '确认推荐'
+        }
+      />
+
+      <ConfirmModal
         open={deleteOpen}
         onClose={() => {
           setDeleteOpen(false);
           setDeleteTarget(null);
         }}
         onConfirm={handleDelete}
+        size="md"
         danger
         title="确认删除这款镜片？"
         description={
           deleteTarget ? (
             <span>
               镜片「<span className="font-bold text-slate-700">{deleteTarget.baseInfo.fullName}</span>
-              」将被<strong>软删除</strong>（保留底层数据），小程序端不再展示；如需彻底删除请执行数据库清理脚本。
+              」将被<strong>软删除</strong>，小程序端与后台列表将不再展示。此操作不会销毁底层数据，如有需要可联系技术人员执行数据库恢复脚本。删除前请确认该镜片：
+              <ul className="mt-2 space-y-1 text-slate-600 list-disc list-inside">
+                <li>当前无未完成的订单绑定</li>
+                <li>未被其他商品套餐组合引用</li>
+                <li>业务侧确认不再需要该数据</li>
+              </ul>
             </span>
           ) : undefined
         }

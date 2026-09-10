@@ -138,17 +138,19 @@ export interface ConfirmModalProps {
   loading?: boolean;
   type?: Exclude<ModalType, 'default'>;
   danger?: boolean;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   type = 'warning',
   danger,
+  size = 'sm',
   ...props
 }) => (
   <Modal
     {...props}
     type={danger ? 'danger' : type}
-    size="sm"
+    size={size}
     hideCancel={false}
     confirmDanger={danger}
   />

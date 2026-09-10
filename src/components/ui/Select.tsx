@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Check, Search, X } from 'lucide-react';
 import { Tag } from './Tag';
 
@@ -23,6 +24,43 @@ export interface SelectProps {
   size?: 'sm' | 'md';
 }
 
+interface DropdownRect {
+  top: number;
+  left: number;
+  width: number;
+  placeAbove: boolean;
+}
+
+function useDropdownRect(triggerRef: React.RefObject<HTMLElement>, open: boolean) {
+  const [rect, setRect] = useState<DropdownRect | null>(null);
+
+  useEffect(() => {
+    if (!open || !triggerRef.current) {
+      setRect(null);
+      return;
+    }
+    const update = () => {
+      const el = triggerRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const viewportH = window.innerHeight;
+      const spaceBelow = viewportH - r.bottom;
+      const spaceAbove = r.top;
+      const placeAbove = spaceBelow < 280 && spaceAbove > spaceBelow;
+      setRect({ top: placeAbove ? r.top : r.bottom, left: r.left, width: r.width, placeAbove });
+    };
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [open, triggerRef]);
+
+  return rect;
+}
+
 export const Select: React.FC<SelectProps> = ({
   options,
   value,
@@ -38,11 +76,13 @@ export const Select: React.FC<SelectProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
-  const ref = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const rect = useDropdownRect(triggerRef as React.RefObject<HTMLElement>, open);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
         setOpen(false);
         setKeyword('');
       }
@@ -52,19 +92,94 @@ export const Select: React.FC<SelectProps> = ({
   }, []);
 
   const selectedOption = options.find((o) => o.value === value);
-  const filtered = searchable
-    ? options.filter((o) => o.label.toLowerCase().includes(keyword.toLowerCase()))
-    : options;
+  const filtered = useMemo(
+    () =>
+      searchable
+        ? options.filter((o) => o.label.toLowerCase().includes(keyword.toLowerCase()))
+        : options,
+    [searchable, options, keyword]
+  );
 
   const h = size === 'sm' ? 'h-9' : 'h-10';
 
+  const dropdown = open && rect && typeof document !== 'undefined' ? (
+    createPortal(
+      <div
+        style={{
+          position: 'fixed',
+          top: rect.placeAbove ? undefined : rect.top + 6,
+          bottom: rect.placeAbove ? window.innerHeight - rect.top + 6 : undefined,
+          left: rect.left,
+          width: rect.width,
+          zIndex: 9999,
+        }}
+        className={`bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in duration-150 ${
+          rect.placeAbove ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'
+        }`}
+      >
+        {searchable && (
+          <div className="p-2 border-b border-slate-100">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                autoFocus
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="搜索..."
+                className="w-full h-9 rounded-lg border border-slate-200 pl-8 pr-3 text-sm outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 bg-slate-50"
+              />
+            </div>
+          </div>
+        )}
+        <div className="max-h-60 overflow-y-auto py-1">
+          {filtered.length === 0 ? (
+            <div className="px-4 py-6 text-center text-sm text-slate-400">暂无匹配项</div>
+          ) : (
+            filtered.map((opt) => {
+              const active = opt.value === value;
+              return (
+                <div
+                  key={opt.value}
+                  onClick={() => {
+                    if (opt.disabled) return;
+                    onChange?.(opt.value, opt);
+                    setOpen(false);
+                    setKeyword('');
+                  }}
+                  className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between gap-2 transition-colors ${
+                    opt.disabled
+                      ? 'opacity-50 cursor-not-allowed'
+                      : active
+                      ? 'bg-brand-50 text-brand-700 font-bold'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <div>
+                    <div>{opt.label}</div>
+                    {opt.description && (
+                      <div className="text-xs text-slate-400 mt-0.5">{opt.description}</div>
+                    )}
+                  </div>
+                  {active && <Check className="w-4 h-4" />}
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>,
+      document.body
+    )
+  ) : null;
+
   return (
-    <div className={`w-full ${wrapperClassName}`} ref={ref}>
+    <div className={`w-full ${wrapperClassName}`} ref={wrapRef}>
       {label && (
         <label className="block text-xs font-bold text-slate-700 mb-1.5">{label}</label>
       )}
       <div className={`relative ${className}`}>
         <button
+          ref={triggerRef}
           type="button"
           disabled={disabled}
           onClick={() => !disabled && setOpen((v) => !v)}
@@ -85,61 +200,8 @@ export const Select: React.FC<SelectProps> = ({
             }`}
           />
         </button>
-        {open && (
-          <div className="absolute z-50 mt-1.5 w-full bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-            {searchable && (
-              <div className="p-2 border-b border-slate-100">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    autoFocus
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="搜索..."
-                    className="w-full h-9 rounded-lg border border-slate-200 pl-8 pr-3 text-sm outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 bg-slate-50"
-                  />
-                </div>
-              </div>
-            )}
-            <div className="max-h-60 overflow-y-auto py-1">
-              {filtered.length === 0 ? (
-                <div className="px-4 py-6 text-center text-sm text-slate-400">暂无匹配项</div>
-              ) : (
-                filtered.map((opt) => {
-                  const active = opt.value === value;
-                  return (
-                    <div
-                      key={opt.value}
-                      onClick={() => {
-                        if (opt.disabled) return;
-                        onChange?.(opt.value, opt);
-                        setOpen(false);
-                        setKeyword('');
-                      }}
-                      className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between gap-2 transition-colors ${
-                        opt.disabled
-                          ? 'opacity-50 cursor-not-allowed'
-                          : active
-                          ? 'bg-brand-50 text-brand-700 font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <div>
-                        <div>{opt.label}</div>
-                        {opt.description && (
-                          <div className="text-xs text-slate-400 mt-0.5">{opt.description}</div>
-                        )}
-                      </div>
-                      {active && <Check className="w-4 h-4" />}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        )}
       </div>
+      {dropdown}
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   );
@@ -174,11 +236,13 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
-  const ref = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const rect = useDropdownRect(triggerRef as React.RefObject<HTMLElement>, open);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
         setOpen(false);
         setKeyword('');
       }
@@ -188,9 +252,13 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
   }, []);
 
   const selectedOpts = options.filter((o) => value.includes(o.value));
-  const filtered = searchable
-    ? options.filter((o) => o.label.toLowerCase().includes(keyword.toLowerCase()))
-    : options;
+  const filtered = useMemo(
+    () =>
+      searchable
+        ? options.filter((o) => o.label.toLowerCase().includes(keyword.toLowerCase()))
+        : options,
+    [searchable, options, keyword]
+  );
 
   const toggle = (opt: SelectOption) => {
     if (opt.disabled) return;
@@ -207,13 +275,80 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
     onChange?.(next, nextOpts);
   };
 
+  const dropdown = open && rect && typeof document !== 'undefined' ? (
+    createPortal(
+      <div
+        style={{
+          position: 'fixed',
+          top: rect.placeAbove ? undefined : rect.top + 6,
+          bottom: rect.placeAbove ? window.innerHeight - rect.top + 6 : undefined,
+          left: rect.left,
+          width: rect.width,
+          zIndex: 9999,
+        }}
+        className={`bg-white rounded-xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in duration-150 ${
+          rect.placeAbove ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'
+        }`}
+      >
+        {searchable && (
+          <div className="p-2 border-b border-slate-100">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                autoFocus
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="搜索..."
+                className="w-full h-9 rounded-lg border border-slate-200 pl-8 pr-3 text-sm outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 bg-slate-50"
+              />
+            </div>
+          </div>
+        )}
+        <div className="max-h-60 overflow-y-auto py-1">
+          {filtered.length === 0 ? (
+            <div className="px-4 py-6 text-center text-sm text-slate-400">暂无匹配项</div>
+          ) : (
+            filtered.map((opt) => {
+              const active = value.includes(opt.value);
+              return (
+                <div
+                  key={opt.value}
+                  onClick={() => toggle(opt)}
+                  className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between gap-2 transition-colors ${
+                    opt.disabled
+                      ? 'opacity-50 cursor-not-allowed'
+                      : active
+                      ? 'bg-brand-50 text-brand-700 font-bold'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <span>{opt.label}</span>
+                  <div
+                    className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                      active ? 'bg-brand-600 border-brand-600' : 'border-slate-300'
+                    }`}
+                  >
+                    {active && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>,
+      document.body
+    )
+  ) : null;
+
   return (
-    <div className={`w-full ${wrapperClassName}`} ref={ref}>
+    <div className={`w-full ${wrapperClassName}`} ref={wrapRef}>
       {label && (
         <label className="block text-xs font-bold text-slate-700 mb-1.5">{label}</label>
       )}
       <div className={`relative ${className}`}>
         <button
+          ref={triggerRef}
           type="button"
           disabled={disabled}
           onClick={() => !disabled && setOpen((v) => !v)}
@@ -248,57 +383,8 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
             }`}
           />
         </button>
-        {open && (
-          <div className="absolute z-50 mt-1.5 w-full bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
-            {searchable && (
-              <div className="p-2 border-b border-slate-100">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    autoFocus
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="搜索..."
-                    className="w-full h-9 rounded-lg border border-slate-200 pl-8 pr-3 text-sm outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 bg-slate-50"
-                  />
-                </div>
-              </div>
-            )}
-            <div className="max-h-60 overflow-y-auto py-1">
-              {filtered.length === 0 ? (
-                <div className="px-4 py-6 text-center text-sm text-slate-400">暂无匹配项</div>
-              ) : (
-                filtered.map((opt) => {
-                  const active = value.includes(opt.value);
-                  return (
-                    <div
-                      key={opt.value}
-                      onClick={() => toggle(opt)}
-                      className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between gap-2 transition-colors ${
-                        opt.disabled
-                          ? 'opacity-50 cursor-not-allowed'
-                          : active
-                          ? 'bg-brand-50 text-brand-700 font-bold'
-                          : 'text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <span>{opt.label}</span>
-                      <div
-                        className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                          active ? 'bg-brand-600 border-brand-600' : 'border-slate-300'
-                        }`}
-                      >
-                        {active && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        )}
       </div>
+      {dropdown}
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   );

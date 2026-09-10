@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Tabs, TabItem } from '../ui/Tabs';
-import { Input, InputSearch } from '../ui/Input';
+import { Input } from '../ui/Input';
 import { Textarea } from '../ui/Textarea';
 import { Select, MultiSelect, type SelectOption } from '../ui/Select';
 import { Tag } from '../ui/Tag';
@@ -11,6 +12,7 @@ import { Button } from '../ui/Button';
 import type { Lens, LensBaseInfo, LensCoreParams, LensSupplyProfile, LensClinicalRules, LensManagement, SourceDoc } from '../../types/lens';
 import type { Brand, TechTag } from '../../types/dictionary';
 import { BrandService, TechTagService } from '../../services/dictionary.service';
+import { mockLensList } from '../../mocks/lens.mock';
 
 interface LensFormModalProps {
   open: boolean;
@@ -183,7 +185,35 @@ export const LensFormModal: React.FC<LensFormModalProps> = ({ open, onClose, onS
     }
   };
 
+  const fillMock = () => {
+    const sample = mockLensList[Math.floor(Math.random() * mockLensList.length)];
+    setBaseInfo({ ...sample.baseInfo });
+    setCoreParams({ ...sample.coreParams });
+    setSupplyProfile({ ...sample.supplyProfile });
+    setClinicalRules({ ...sample.clinicalRules });
+    setManagement({ ...sample.management });
+    setErrors({});
+  };
+
   const grid = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+
+  const renderFooter = (
+    <div className="flex items-center justify-between w-full">
+      {!isEdit && (
+        <Button variant="ghost" size="md" onClick={fillMock}>
+          ✨ 一键 Mock 数据
+        </Button>
+      )}
+      <div className="ml-auto flex gap-2">
+        <Button variant="default" onClick={onClose} size="md">
+          取消
+        </Button>
+        <Button variant="primary" loading={submitting} onClick={handleSubmit} size="md">
+          {isEdit ? '保存修改' : '确认录入'}
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <Modal
@@ -199,9 +229,10 @@ export const LensFormModal: React.FC<LensFormModalProps> = ({ open, onClose, onS
         ) : undefined
       }
       size="xl"
-      hideFooter
+      footer={renderFooter}
+      hideFooter={false}
     >
-      <div className="px-6 py-5 max-h-[70vh] overflow-y-auto -mx-6 -my-5">
+      <div className="max-h-[70vh] overflow-y-auto -mx-7 -my-6 px-7 py-6">
         <Tabs variant="secondary" defaultValue="base">
           <TabItem label="① 基础信息" value="base">
             <div className="px-1 space-y-4">
@@ -217,7 +248,6 @@ export const LensFormModal: React.FC<LensFormModalProps> = ({ open, onClose, onS
               <div className={grid}>
                 <Select
                   label="品牌名称"
-                  required
                   options={brands}
                   value={baseInfo.brandId}
                   onChange={(v) => setField('brandId', v)}
@@ -241,8 +271,7 @@ export const LensFormModal: React.FC<LensFormModalProps> = ({ open, onClose, onS
                   }
                 />
                 <Select
-                  label="技术大类"
-                  required
+                  label="技术大类 <span className='text-red-500'>*</span>"
                   options={techCats}
                   value={baseInfo.techCategoryId}
                   onChange={(v) => setField('techCategoryId', v)}
@@ -575,14 +604,6 @@ export const LensFormModal: React.FC<LensFormModalProps> = ({ open, onClose, onS
             </div>
           </TabItem>
         </Tabs>
-      </div>
-      <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-2 -mx-6 -mb-5 mt-5 rounded-b-3xl">
-        <Button variant="default" onClick={onClose} size="md">
-          取消
-        </Button>
-        <Button variant="primary" loading={submitting} onClick={handleSubmit} size="md">
-          {isEdit ? '保存修改' : '确认录入'}
-        </Button>
       </div>
     </Modal>
   );
