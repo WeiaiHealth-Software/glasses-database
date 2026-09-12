@@ -40,6 +40,10 @@ export const MENU_PERMISSIONS = [
   { key: 'menu:system:users', group: '系统设置', label: '用户管理' },
   { key: 'menu:system:permissions', group: '系统设置', label: '权限管理' },
   { key: 'menu:system:logs', group: '系统设置', label: '操作日志' },
+  { key: 'menu:content:expert:view', group: '运营管理', label: '查看专家解说' },
+  { key: 'menu:content:expert:edit', group: '运营管理', label: '编辑专家解说' },
+  { key: 'menu:content:paper:view', group: '运营管理', label: '查看论文参考' },
+  { key: 'menu:content:paper:edit', group: '运营管理', label: '编辑论文参考' },
 ] as const;
 
 export interface OperationLog extends BaseEntity {
@@ -62,6 +66,8 @@ export const OPERATION_MODULES = [
   '权限管理',
   '登录',
   '系统配置',
+  '专家解说',
+  '论文参考',
 ] as const;
 
 export const ACTION_LABEL: Record<OperationAction, string> = {
