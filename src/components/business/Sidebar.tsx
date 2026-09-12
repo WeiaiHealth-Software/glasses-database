@@ -35,11 +35,12 @@ const subMenuGroups: SubMenuGroup[] = [
   },
   {
     key: 'operation',
-    label: '运营与推荐管理',
+    label: '运营管理',
     icon: TrendingUp,
     defaultOpen: false,
     children: [
       { key: 'op-recommend', label: '首页推荐位', icon: FileText, path: '/operation/recommend' },
+      { key: 'op-compare', label: '镜片横向对比工具', icon: ArrowLeftRight, path: '/compare' },
     ],
   },
   {
@@ -67,13 +68,6 @@ const showcaseMenu: MenuItem = {
   label: 'UI 组件库示例',
   icon: Layers3,
   path: '/ui-showcase',
-};
-
-const compareMenu: MenuItem = {
-  key: 'compare',
-  label: '镜片横向对比工具',
-  icon: ArrowLeftRight,
-  path: '/compare',
 };
 
 interface SidebarProps {
@@ -204,24 +198,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ openMenus, toggleMenu }) => {
             >
               <Icon className="w-5.5 h-5.5" />
               <span className="text-base">{showcaseMenu.label}</span>
-            </div>
-          );
-        })()}
-
-        {(() => {
-          const Icon = compareMenu.icon;
-          const active = isActive(compareMenu.path);
-          return (
-            <div
-              onClick={() => navigate(compareMenu.path)}
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl cursor-pointer mt-2.5 border transition-colors ${
-                active
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 font-bold shadow-[inset_2px_0_0_rgba(5,150,105,0.5)]'
-                  : 'text-emerald-700 hover:bg-emerald-50 font-semibold border-emerald-200 bg-white'
-              }`}
-            >
-              <Icon className="w-5.5 h-5.5" />
-              <span className="text-base">{compareMenu.label}</span>
             </div>
           );
         })()}

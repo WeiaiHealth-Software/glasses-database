@@ -15,6 +15,7 @@ export interface CompareRow {
   hint?: string;
   values: (React.ReactNode | { text: string; highlighted?: boolean; warn?: boolean })[];
   hasDiff?: boolean;
+  bestIndices?: number[];
 }
 
 export function formatRate(value?: string): string {
