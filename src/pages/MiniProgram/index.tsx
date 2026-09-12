@@ -4,7 +4,7 @@ import {
   Share2, Heart, X, ChevronLeft, User, Stethoscope, Award, AlertTriangle,
   ClipboardList, FileText, Info, Check, ShieldCheck, BookOpen,
   MessageCircle, ExternalLink, Sparkles, Bookmark, Star, Handshake,
-  ChevronRight,
+  ChevronRight, Pin, MessageSquareText, Eye,
 } from 'lucide-react';
 import { Tag } from '../../components/ui/Tag';
 import { Modal } from '../../components/ui/Modal';
@@ -24,6 +24,10 @@ import {
 } from '../../services/compare.service';
 import { mockLensList } from '../../mocks/lens.mock';
 import { mockTechTagList } from '../../mocks/dictionary.mock';
+import { ContentService } from '../../services/content.service';
+import { MarkdownRenderer } from '../../utils/markdown-renderer';
+import type { ContentArticle, ContentCategory } from '../../types/content';
+import { CONTENT_CATEGORY_LABEL, CONTENT_TAG_LABEL } from '../../types/content';
 
 const TECH_TAG_LABEL_MAP: Record<string, string> = {};
 for (const t of mockTechTagList) TECH_TAG_LABEL_MAP[t.id] = t.name;
@@ -71,9 +75,22 @@ const parentIcon: Record<string, typeof Heart> = {
 };
 
 export default function MiniProgramPreviewPage() {
+  type DetailView =
+    | { type: 'none' }
+    | { type: 'lens'; lensId: string }
+    | { type: 'content'; articleId: string }
+    | { type: 'contentList' };
   const [bottomTab, setBottomTab] = useState<BottomTab>('home');
-  const [detailLensId, setDetailLensId] = useState<string | null>(null);
+  const [detailView, setDetailView] = useState<DetailView>({ type: 'none' });
   const [detail, setDetail] = useState<Lens | null>(null);
+  const [detailArticle, setDetailArticle] = useState<ContentArticle | null>(null);
+
+  const [homeExpert, setHomeExpert] = useState<ContentArticle[]>([]);
+  const [homePaper, setHomePaper] = useState<ContentArticle[]>([]);
+  const [contentListTab, setContentListTab] = useState<ContentCategory>('expert_article');
+  const [contentListFilter, setContentListFilter] = useState<{ tag?: string; kw?: string }>({});
+  const [contentList, setContentList] = useState<ContentArticle[]>([]);
+
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [toast, setToast] = useState<string | null>(null);
@@ -98,15 +115,47 @@ export default function MiniProgramPreviewPage() {
   const [compareKeyword, setCompareKeyword] = useState('');
 
   useEffect(() => {
-    if (!detailLensId) {
+    void (async () => {
+      const res = await ContentService.listForHomepage();
+      if (res.code === 0) {
+        setHomeExpert(res.data.expert);
+        setHomePaper(res.data.paper);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (detailView.type !== 'contentList') return;
+    void (async () => {
+      const res = await ContentService.list(contentListTab);
+      if (res.code === 0) setContentList(res.data);
+    })();
+  }, [contentListTab, detailView.type]);
+
+  useEffect(() => {
+    if (detailView.type !== 'lens') {
       setDetail(null);
       return;
     }
     void (async () => {
-      const res = await LensService.get(detailLensId);
+      const res = await LensService.get(detailView.lensId);
       if (res.code === 0) setDetail(res.data);
     })();
-  }, [detailLensId]);
+  }, [detailView]);
+
+  useEffect(() => {
+    if (detailView.type !== 'content') {
+      setDetailArticle(null);
+      return;
+    }
+    void (async () => {
+      const res = await ContentService.get(detailView.articleId);
+      if (res.code === 0) {
+        setDetailArticle(res.data);
+        await ContentService.incView(detailView.articleId).catch(() => {});
+      }
+    })();
+  }, [detailView]);
 
   useEffect(() => {
     if (!toast) return;
@@ -156,7 +205,7 @@ export default function MiniProgramPreviewPage() {
       }
       const next = [...prev, id];
       if (prev.length === 0) {
-        setDetailLensId(null);
+        setDetailView({ type: 'none' });
         setBottomTab('compare');
         setCompareView('select');
       }
@@ -212,7 +261,7 @@ export default function MiniProgramPreviewPage() {
     return (
       <div
         key={lens.id}
-        onClick={() => setDetailLensId(lens.id)}
+        onClick={() => setDetailView({ type: 'lens', lensId: lens.id })}
         className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-3 relative overflow-hidden cursor-pointer transition-transform active:scale-[0.99]"
       >
         {showFavorite && (
@@ -280,18 +329,22 @@ export default function MiniProgramPreviewPage() {
   };
 
   const renderHeader = () => {
-    if (detailLensId) {
+    if (detailView.type !== 'none') {
       return (
         <div className="pt-10 pb-2 px-3 bg-brand-600 text-white flex items-center justify-between shadow-sm shrink-0">
           <button
             type="button"
-            onClick={() => setDetailLensId(null)}
+            onClick={() => setDetailView({ type: 'none' })}
             className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center active:bg-white/25"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex-1 text-center px-2 text-[15px] font-bold leading-6 max-w-[260px] truncate mx-1">
-            {detail?.baseInfo.fullName ?? '镜片详情'}
+            {detailView.type === 'lens'
+              ? (detail?.baseInfo.fullName ?? '镜片详情')
+              : detailView.type === 'content'
+              ? (CONTENT_CATEGORY_LABEL[detailArticle?.category ?? 'expert_article'] ?? '内容详情')
+              : '专业信息 · 全部内容'}
           </div>
           <button
             type="button"
@@ -361,6 +414,82 @@ export default function MiniProgramPreviewPage() {
       </div>
 
       <div className="p-4 space-y-3">
+        {(() => {
+          const articles = [...homeExpert, ...homePaper];
+          if (homeExpert.length === 0 && homePaper.length === 0) return null;
+          const toneExpert = { badge: 'bg-teal-50 text-teal-700 border-teal-200', title: '专家解说' };
+          const tonePaper = { badge: 'bg-indigo-50 text-indigo-700 border-indigo-200', title: '论文参考' };
+          const renderCard = (a: ContentArticle, tone: { badge: string; title: string }, IconComp: typeof BookOpen) => (
+            <div
+              key={a.id}
+              onClick={() => setDetailView({ type: 'content', articleId: a.id })}
+              className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 relative overflow-hidden active:scale-[0.995] cursor-pointer"
+            >
+              <div
+                className={`absolute right-0 top-0 w-10 h-10 ${tone.badge} border-l border-b rounded-bl-2xl flex items-center justify-center`}
+                style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }}
+              >
+                <ChevronRight className="w-3.5 h-3.5 relative left-1 -top-1 opacity-70" />
+              </div>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${tone.badge}`}>
+                  <IconComp className="w-3 h-3" /> {tone.title}
+                </div>
+                {a.isPinned && (
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    <Pin className="w-3 h-3" /> 置顶
+                  </div>
+                )}
+              </div>
+              <div className="text-[13px] font-bold text-slate-800 leading-snug line-clamp-1 mb-1 pr-8">
+                {a.title}
+              </div>
+              <div className="text-[11px] text-slate-500 leading-5 line-clamp-2 mb-2 pr-2">
+                {a.summary}
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5 justify-between">
+                <div className="flex flex-wrap gap-1">
+                  {a.tags.slice(0, 3).map((t) => (
+                    <span
+                      key={t}
+                      className={`px-2 py-0.5 rounded-lg text-[9.5px] font-bold border ${tone.badge}`}
+                    >
+                      {CONTENT_TAG_LABEL[t]}
+                    </span>
+                  ))}
+                </div>
+                <span className="text-[10px] text-slate-400 truncate max-w-[120px]">
+                  {a.source}
+                </span>
+              </div>
+            </div>
+          );
+          return (
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-brand-600 text-white text-xs font-bold shadow-sm">
+                    <BookOpen className="w-3.5 h-3.5" /> 专业信息
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-semibold">
+                    共 {articles.length} 篇
+                  </span>
+                </div>
+                <div
+                  className="text-[11px] font-bold text-brand-600 flex items-center gap-1 cursor-pointer active:opacity-70"
+                  onClick={() => setDetailView({ type: 'contentList' })}
+                >
+                  最新入库 <ChevronRight className="w-3 h-3" />
+                </div>
+              </div>
+              <div className="space-y-2.5">
+                {homeExpert.slice(0, 2).map((a) => renderCard(a, toneExpert, MessageSquareText))}
+                {homePaper.slice(0, 2).map((a) => renderCard(a, tonePaper, BookOpen))}
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="text-xs font-bold text-slate-500 flex justify-between items-center">
           <span>
             {listSection === 'recommend' ? '精选推荐' : listSection === 'hot' ? '热门镜片' : '最新录入'}
@@ -1635,44 +1764,237 @@ export default function MiniProgramPreviewPage() {
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
-            onClick={() => detailLensId && toggleCompare(detailLensId)}
+            onClick={() => detailView.type === 'lens' && toggleCompare(detailView.lensId)}
             className={`h-11 rounded-2xl text-[13px] font-bold flex items-center justify-center gap-1.5 border transition-all ${
-              detailLensId && compareIds.includes(detailLensId)
+              detailView.type === 'lens' && compareIds.includes(detailView.lensId)
                 ? 'bg-sky-50 text-sky-700 border-sky-200 active:bg-sky-100'
                 : 'bg-white text-slate-700 border-slate-200 active:bg-slate-50'
             }`}
           >
             <Scale className="w-4 h-4" />
-            {detailLensId && compareIds.includes(detailLensId)
+            {detailView.type === 'lens' && compareIds.includes(detailView.lensId)
               ? `对比清单（${compareIds.length}/4）`
               : '加入对比'}
           </button>
           <button
             type="button"
-            onClick={() => { detailLensId && toggleFavorite(detailLensId); }}
+            onClick={() => { detailView.type === 'lens' && toggleFavorite(detailView.lensId); }}
             className={`h-11 rounded-2xl text-[13px] font-bold flex items-center justify-center gap-1.5 shadow-sm ${
-              detailLensId && favoriteIds.includes(detailLensId)
+              detailView.type === 'lens' && favoriteIds.includes(detailView.lensId)
                 ? 'bg-rose-500 text-white active:bg-rose-600'
                 : 'bg-brand-600 text-white active:bg-brand-700'
             }`}
           >
-            <Heart className={`w-4 h-4 ${detailLensId && favoriteIds.includes(detailLensId) ? 'fill-white' : ''}`} />
-            {detailLensId && favoriteIds.includes(detailLensId) ? '已收藏' : '收藏'}
+            <Heart className={`w-4 h-4 ${detailView.type === 'lens' && favoriteIds.includes(detailView.lensId) ? 'fill-white' : ''}`} />
+            {detailView.type === 'lens' && favoriteIds.includes(detailView.lensId) ? '已收藏' : '收藏'}
           </button>
         </div>
       </div>
     </div>
   );
 
+  const renderContentDetail = () => {
+    const a = detailArticle;
+    if (!a) {
+      return (
+        <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">加载中...</div>
+      );
+    }
+    const cat = a.category;
+    const tone = cat === 'expert_article'
+      ? { badge: 'bg-teal-50 text-teal-700 border-teal-200', accent: 'text-teal-600' }
+      : { badge: 'bg-indigo-50 text-indigo-700 border-indigo-200', accent: 'text-indigo-600' };
+    const IconComp = cat === 'expert_article' ? MessageSquareText : BookOpen;
+    return (
+      <div className="flex-1 overflow-y-auto bg-slate-50 pb-8">
+        <div className={`px-4 pt-5 pb-4 bg-gradient-to-br ${cat === 'expert_article' ? 'from-teal-50 to-white' : 'from-indigo-50 to-white'}`}>
+          <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border mb-2 ${tone.badge}`}>
+            <IconComp className="w-3 h-3" />
+            {CONTENT_CATEGORY_LABEL[cat]}
+          </div>
+          <h1 className="text-[17px] font-extrabold text-slate-900 leading-snug">
+            {a.title}
+          </h1>
+        </div>
+        <div className="px-4 py-3 border-b border-slate-100 bg-white">
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {a.tags.map((t) => (
+              <span key={t} className={`px-2 py-0.5 rounded-lg text-[10px] font-bold border ${tone.badge}`}>
+                {CONTENT_TAG_LABEL[t]}
+              </span>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
+            <span className="truncate max-w-[180px]">{a.source}</span>
+            <span className="text-slate-300">·</span>
+            <span>{(a.updatedAt ?? '').slice(0, 10)}</span>
+            <span className="text-slate-300">·</span>
+            <span className="flex items-center gap-0.5">
+              <Eye className="w-3 h-3" />
+              {a.viewCount.toLocaleString()}
+            </span>
+          </div>
+        </div>
+        <div className="px-4 py-5 bg-white">
+          <MarkdownRenderer source={a.content} />
+        </div>
+        {(a.relatedLensIds ?? []).length > 0 && (
+          <div className="mt-3 px-4 py-3 bg-white border-t border-slate-100">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <span className="w-1 h-4 rounded-full bg-brand-500" />
+                推荐相关镜片
+              </div>
+              <span
+                className="text-[11px] text-brand-600 font-bold flex items-center gap-0.5 cursor-pointer"
+                onClick={() => { setDetailView({ type: 'none' }); setBottomTab('home'); }}
+              >
+                查看全部 <ChevronRight className="w-3 h-3" />
+              </span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {(a.relatedLensIds ?? [])
+                .map((id) => mockLensList.find((l) => l.id === id))
+                .filter(Boolean)
+                .map((lens) => (
+                  <div
+                    key={lens!.id}
+                    onClick={() => setDetailView({ type: 'lens', lensId: lens!.id })}
+                    className="shrink-0 w-[180px] rounded-xl border border-slate-100 bg-slate-50 p-2.5 cursor-pointer active:bg-slate-100"
+                  >
+                    <div className="text-[9.5px] text-slate-500 font-bold mb-0.5 truncate">
+                      {nameOfBrand(lens!.baseInfo.brandId)}
+                    </div>
+                    <div className="text-[11.5px] font-bold text-slate-800 leading-snug line-clamp-2 mb-1 min-h-[32px]">
+                      {lens!.baseInfo.fullName}
+                    </div>
+                    <div className="text-[10px] text-emerald-600 font-bold">
+                      {formatPrice((lens as any).management?.suggestedRetailPrice)}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderContentList = () => {
+    const kw = (contentListFilter.kw ?? '').trim().toLowerCase();
+    const tag = contentListFilter.tag;
+    const filtered = contentList.filter((a) => {
+      if (kw && !a.title.toLowerCase().includes(kw) && !a.summary.toLowerCase().includes(kw)) return false;
+      if (tag && !a.tags.includes(tag as any)) return false;
+      return true;
+    });
+    const tagOptions = Object.keys(CONTENT_TAG_LABEL) as (keyof typeof CONTENT_TAG_LABEL)[];
+    return (
+      <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden">
+        <div className="shrink-0 bg-white border-b border-slate-100 px-2">
+          <Tabs
+            variant="primary"
+            value={contentListTab}
+            onChange={(v) => setContentListTab(v as any)}
+            size="sm"
+          >
+            <TabItem label={CONTENT_CATEGORY_LABEL['expert_article']} value="expert_article" />
+            <TabItem label={CONTENT_CATEGORY_LABEL['paper_reference']} value="paper_reference" />
+          </Tabs>
+        </div>
+        <div className="shrink-0 px-3 py-2 bg-white border-b border-slate-100 space-y-1.5">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <input
+              className="w-full h-8 pl-8 pr-3 bg-slate-50 rounded-lg text-[11.5px] outline-none border border-transparent focus:border-brand-200"
+              placeholder="搜索标题/摘要"
+              value={contentListFilter.kw ?? ''}
+              onChange={(e) => setContentListFilter({ ...contentListFilter, kw: e.target.value })}
+            />
+          </div>
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+            <button
+              type="button"
+              onClick={() => setContentListFilter({ ...contentListFilter, tag: undefined })}
+              className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full font-semibold ${!tag ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+            >
+              全部
+            </button>
+            {tagOptions.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setContentListFilter({ ...contentListFilter, tag: t })}
+                className={`shrink-0 text-[10px] px-2 py-0.5 rounded-full font-semibold ${tag === t ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+              >
+                {CONTENT_TAG_LABEL[t]}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
+          {filtered.length === 0 ? (
+            <div className="text-center text-slate-400 text-xs py-12">暂无内容</div>
+          ) : (
+            filtered.map((a) => {
+              const tone = a.category === 'expert_article'
+                ? { badge: 'bg-teal-50 text-teal-700 border-teal-200', title: '专家解说' }
+                : { badge: 'bg-indigo-50 text-indigo-700 border-indigo-200', title: '论文参考' };
+              const IconComp = a.category === 'expert_article' ? MessageSquareText : BookOpen;
+              return (
+                <div
+                  key={a.id}
+                  onClick={() => setDetailView({ type: 'content', articleId: a.id })}
+                  className="bg-white rounded-xl border border-slate-100 p-3 cursor-pointer active:bg-slate-50"
+                >
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${tone.badge}`}>
+                      <IconComp className="w-3 h-3" /> {tone.title}
+                    </div>
+                    {a.isPinned && (
+                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        <Pin className="w-3 h-3" /> 置顶
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-[13px] font-bold text-slate-800 leading-snug line-clamp-2 mb-1">
+                    {a.title}
+                  </div>
+                  <div className="text-[11px] text-slate-500 leading-5 line-clamp-3 mb-2">
+                    {a.summary}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 justify-between">
+                    <div className="flex flex-wrap gap-1">
+                      {a.tags.slice(0, 3).map((t) => (
+                        <span key={t} className={`px-2 py-0.5 rounded-lg text-[9.5px] font-bold border ${tone.badge}`}>
+                          {CONTENT_TAG_LABEL[t]}
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-slate-400 truncate max-w-[120px]">
+                      {a.source}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderBody = () => {
-    if (detailLensId) return renderDetailPage();
+    if (detailView.type === 'lens') return renderDetailPage();
+    if (detailView.type === 'content') return renderContentDetail();
+    if (detailView.type === 'contentList') return renderContentList();
     if (bottomTab === 'home') return renderHomePage();
     if (bottomTab === 'compare') return renderComparePage();
     return renderMePage();
   };
 
   const renderBottomTabBar = () => {
-    if (detailLensId) return null;
+    if (detailView.type !== 'none') return null;
     if (compareLandscapeMode) return null;
     const tabs: { key: BottomTab; label: string; Icon: typeof Home; active: boolean }[] = [
       { key: 'home', label: '首页', Icon: Home, active: bottomTab === 'home' },

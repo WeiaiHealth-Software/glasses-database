@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Database, Tags, Settings, Smartphone, ChevronDown, ChevronRight, Glasses, Shield, UserCog, FileText, TrendingUp, Layers3, ArrowLeftRight } from 'lucide-react';
+import { LayoutDashboard, Database, Tags, Settings, Smartphone, ChevronDown, ChevronRight, Glasses, Shield, UserCog, FileText, TrendingUp, Layers3, ArrowLeftRight, MessageSquareText, BookOpen } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 interface MenuItem {
@@ -40,6 +40,8 @@ const subMenuGroups: SubMenuGroup[] = [
     defaultOpen: false,
     children: [
       { key: 'op-recommend', label: '首页推荐位', icon: FileText, path: '/operation/recommend' },
+      { key: 'op-expert', label: '专家解说管理', icon: MessageSquareText, path: '/operation/expert-articles' },
+      { key: 'op-paper', label: '论文参考管理', icon: BookOpen, path: '/operation/paper-references' },
       { key: 'op-compare', label: '镜片横向对比工具', icon: ArrowLeftRight, path: '/compare' },
     ],
   },

@@ -7,6 +7,8 @@ const LensDatabasePage = lazy(() => import('../pages/LensDatabase'));
 const BrandListPage = lazy(() => import('../pages/Dictionary/BrandList'));
 const TechTagListPage = lazy(() => import('../pages/Dictionary/TechTagList'));
 const RecommendListPage = lazy(() => import('../pages/Operation/RecommendList'));
+const ExpertArticleListPage = lazy(() => import('../pages/Operation/ExpertArticleList'));
+const PaperReferenceListPage = lazy(() => import('../pages/Operation/PaperReferenceList'));
 const PermissionListPage = lazy(() => import('../pages/System/PermissionList'));
 const UserListPage = lazy(() => import('../pages/System/UserList'));
 const OperationLogPage = lazy(() => import('../pages/System/OperationLog'));
@@ -69,6 +71,22 @@ export const router = createBrowserRouter([
         element: (
           <PageSuspense>
             <RecommendListPage />
+          </PageSuspense>
+        ),
+      },
+      {
+        path: 'operation/expert-articles',
+        element: (
+          <PageSuspense>
+            <ExpertArticleListPage />
+          </PageSuspense>
+        ),
+      },
+      {
+        path: 'operation/paper-references',
+        element: (
+          <PageSuspense>
+            <PaperReferenceListPage />
           </PageSuspense>
         ),
       },
