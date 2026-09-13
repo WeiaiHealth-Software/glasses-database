@@ -4,7 +4,7 @@ import {
   Share2, Heart, X, ChevronLeft, User, Stethoscope, Award, AlertTriangle,
   ClipboardList, FileText, Info, Check, ShieldCheck, BookOpen,
   MessageCircle, ExternalLink, Sparkles, Bookmark, Star, Handshake,
-  ChevronRight, Pin, MessageSquareText, Eye,
+  ChevronRight, Pin, MessageSquareText, Eye, Glasses,
 } from 'lucide-react';
 import { Tag } from '../../components/ui/Tag';
 import { Modal } from '../../components/ui/Modal';
@@ -23,6 +23,7 @@ import {
   type CompareRow,
 } from '../../services/compare.service';
 import { mockLensList } from '../../mocks/lens.mock';
+import glassesImg from '../../assets/glasses.png';
 import { mockTechTagList } from '../../mocks/dictionary.mock';
 import { ContentService } from '../../services/content.service';
 import { MarkdownRenderer } from '../../utils/markdown-renderer';
@@ -32,8 +33,9 @@ import { CONTENT_CATEGORY_LABEL, CONTENT_TAG_LABEL } from '../../types/content';
 const TECH_TAG_LABEL_MAP: Record<string, string> = {};
 for (const t of mockTechTagList) TECH_TAG_LABEL_MAP[t.id] = t.name;
 
-type BottomTab = 'home' | 'compare' | 'me';
+type BottomTab = 'home' | 'lens' | 'compare' | 'me';
 type ListSection = 'recommend' | 'hot' | 'latest';
+type LensTopTab = 'all' | 'kid' | 'adult' | 'midage' | 'hot';
 
 const BRAND_COLOR_MAP: Record<string, string> = {
   zeiss: '#0A66C2',
@@ -103,6 +105,9 @@ export default function MiniProgramPreviewPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [listSection, setListSection] = useState<ListSection>('recommend');
+
+  const [lensTopTab, setLensTopTab] = useState<LensTopTab>('all');
+  const [lensSideTab, setLensSideTab] = useState<string>('t_md');
 
   const [compareView, setCompareView] = useState<'select' | 'result'>('select');
   const [compareTab, setCompareTab] = useState<'summary' | 'doctorParams'>('doctorParams');
@@ -272,6 +277,45 @@ export default function MiniProgramPreviewPage() {
 
   const lensById = (id: string) => mockLensList.find((l) => l.id === id);
 
+  const techCategoryList = useMemo(
+    () => mockTechTagList.filter((t) => t.category === 'tech_category'),
+    [],
+  );
+
+  const lensPageVisibleList = useMemo(() => {
+    const base = mockLensList.filter((l) => !l.management.softDeleted);
+    let list = base.filter((l) => l.baseInfo.techCategoryId === lensSideTab);
+    switch (lensTopTab) {
+      case 'kid':
+        list = list.filter((l) => (l.coreParams.recommendedAgeMin ?? 99) <= 12);
+        break;
+      case 'adult':
+        list = list.filter((l) => (l.coreParams.recommendedAgeMax ?? 0) >= 14);
+        break;
+      case 'midage':
+        list = list.filter((l) =>
+          l.baseInfo.techCategoryId === 't_prog'
+          || (l.coreParams.recommendedAgeMax ?? 0) >= 30,
+        );
+        break;
+      case 'hot':
+        list = list.filter((l) => l.management.isHomepageRecommended);
+        break;
+      case 'all':
+      default:
+        break;
+    }
+    return list;
+  }, [lensSideTab, lensTopTab]);
+
+  const lensPageTopTabs: { key: LensTopTab; label: string }[] = [
+    { key: 'all', label: '千万人严选' },
+    { key: 'kid', label: '孩子' },
+    { key: 'adult', label: '成人' },
+    { key: 'midage', label: '中年' },
+    { key: 'hot', label: '热门' },
+  ];
+
   const renderLensCard = (lens: Lens, showFavorite = true) => {
     const inCmp = compareIds.includes(lens.id);
     const fav = favoriteIds.includes(lens.id);
@@ -327,8 +371,8 @@ export default function MiniProgramPreviewPage() {
             </span>
           )}
         </div>
-        <div className="flex items-center justify-between pt-1">
-          <div className="text-xs text-slate-500">
+        <div className="flex items-center justify-between pt-1 gap-3">
+          <div className="text-xs text-slate-500 min-w-0 flex-1">
             {lens.coreParams.myopiaControlRate ? (
               <span>
                 控制率 <span className="font-bold text-amber-600">{lens.coreParams.myopiaControlRate}</span>
@@ -337,8 +381,23 @@ export default function MiniProgramPreviewPage() {
               <span className="text-slate-400">控制率暂无</span>
             )}
           </div>
-          <div className="text-[15px] font-bold text-brand-700">
-            {formatPrice(lens.management.suggestedRetailPrice)}
+          <div className="shrink-0 flex flex-wrap justify-end gap-1">
+            {(() => {
+              const ageText = formatAge(
+                lens.coreParams.recommendedAgeMin,
+                lens.coreParams.recommendedAgeMax,
+              );
+              return ageText && ageText !== '—' ? (
+                <span className="px-1.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-100">
+                  适用 {ageText}
+                </span>
+              ) : null;
+            })()}
+            {lens.supplyProfile.channelAvailability?.hospital ? (
+              <span className="px-1.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-100">
+                医院渠道
+              </span>
+            ) : null}
           </div>
         </div>
       </div>
@@ -377,6 +436,7 @@ export default function MiniProgramPreviewPage() {
       <div className="pt-12 pb-3 px-4 bg-brand-600 text-white flex items-center justify-center relative shadow-sm shrink-0">
         <h1 className="font-bold text-lg tracking-wide text-white">
           {bottomTab === 'home' && '近视防控镜片查询'}
+          {bottomTab === 'lens' && '镜片分类导航'}
           {bottomTab === 'compare' && '镜片横向对比'}
           {bottomTab === 'me' && '个人中心'}
         </h1>
@@ -548,9 +608,9 @@ export default function MiniProgramPreviewPage() {
           </span>
           <span
             className="text-brand-600 flex items-center gap-1 cursor-pointer active:opacity-70"
-            onClick={() => setDisclaimerOpen(true)}
+            onClick={() => setBottomTab('lens')}
           >
-            医疗免责声明 <AlertCircle className="w-3 h-3" />
+            全部镜片 <ChevronRight className="w-3 h-3" />
           </span>
         </div>
         {visibleLensList.length === 0 ? (
@@ -1516,6 +1576,163 @@ export default function MiniProgramPreviewPage() {
     );
   };
 
+  const renderLensPage = () => {
+    const currentTech = techCategoryList.find((t) => t.id === lensSideTab) ?? techCategoryList[0];
+    const techName = currentTech?.name ?? '全部技术';
+
+    return (
+      <div className="flex-1 flex flex-col bg-slate-50 overflow-hidden">
+        <div className="shrink-0 bg-white border-b border-slate-100 px-3 py-3 space-y-2.5">
+          <div
+            className="relative w-full"
+            onClick={() => { setBottomTab('home'); showToast('已返回首页搜索'); }}
+          >
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="搜索品牌、镜片名称、系列"
+              readOnly
+              className="w-full h-10 rounded-full border border-slate-200 pl-9 pr-4 bg-slate-50 text-sm outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="shrink-0 bg-white border-b border-slate-100 px-2">
+          <div className="flex gap-4 overflow-x-auto pb-2 pt-2 scrollbar-hide">
+            {lensPageTopTabs.map((t) => {
+              const active = lensTopTab === t.key;
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setLensTopTab(t.key)}
+                  className={`shrink-0 relative px-1 py-1 text-[14px] transition-colors ${
+                    active
+                      ? 'text-brand-700 font-extrabold'
+                      : 'text-slate-500 font-semibold'
+                  }`}
+                >
+                  {t.label}
+                  {active && (
+                    <span className="absolute left-0 right-0 -bottom-2 h-[3px] rounded-full bg-brand-600" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex-1 min-h-0 flex">
+          <div className="shrink-0 w-[96px] bg-slate-50 border-r border-slate-100 overflow-y-auto">
+            {techCategoryList.map((t) => {
+              const active = lensSideTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setLensSideTab(t.id)}
+                  className={`w-full relative px-3 py-3.5 text-left transition-all ${
+                    active
+                      ? 'bg-white font-bold text-slate-900'
+                      : 'text-slate-600 font-semibold active:bg-slate-100/60'
+                  }`}
+                >
+                  {active && (
+                    <span className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full bg-brand-600" />
+                  )}
+                  <span className={`text-[13px] leading-5 block ${active ? 'ml-0.5' : ''}`}>
+                    {t.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex-1 min-w-0 overflow-y-auto">
+            <div className="px-3 py-3 space-y-2.5">
+              <div className="flex items-center justify-between px-0.5">
+                <div className="text-[11.5px] font-bold text-slate-500">
+                  {techName} · 共 {lensPageVisibleList.length} 款
+                </div>
+                <span className="px-2 py-0.5 rounded-md bg-brand-50 text-brand-600 text-[10px] font-bold border border-brand-100">
+                  {lensPageTopTabs.find((x) => x.key === lensTopTab)?.label}
+                </span>
+              </div>
+              {lensPageVisibleList.length === 0 ? (
+                <div className="bg-white rounded-xl border border-dashed border-slate-200 py-10 px-4 text-center space-y-2">
+                  <div className="text-slate-300">
+                    <Glasses className="w-10 h-10 mx-auto opacity-70" />
+                  </div>
+                  <div className="text-[12px] font-bold text-slate-500">
+                    {lensTopTab === 'adult' || lensTopTab === 'midage'
+                      ? `${lensPageTopTabs.find((x) => x.key === lensTopTab)?.label ?? ''}镜片参数筹备中`
+                      : '暂无该分类镜片'}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setLensTopTab('all'); }}
+                    className="mt-2 px-4 py-1.5 rounded-full bg-brand-50 text-brand-600 text-[11px] font-bold border border-brand-100 inline-flex items-center gap-1"
+                  >
+                    试试「千万人严选」
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                lensPageVisibleList.map((lens) => {
+                  const brandName = nameOfBrand(lens.baseInfo.brandId);
+                  const bColor = brandColor(lens.baseInfo.brandId);
+                  return (
+                    <div
+                      key={lens.id}
+                      onClick={() => setDetailView({ type: 'lens', lensId: lens.id })}
+                      className="bg-white rounded-xl border border-slate-100 shadow-sm flex items-center gap-2.5 pl-0 pr-3 py-0 cursor-pointer active:scale-[0.995] transition-transform overflow-hidden"
+                    >
+                      <div
+                        className="shrink-0 w-[80px] h-[80px] bg-slate-50 overflow-hidden relative flex items-center justify-center"
+                      >
+                        <img
+                          src={glassesImg}
+                          alt={lens.baseInfo.fullName}
+                          className="w-full h-full object-contain"
+                        />
+                        {lens.management.isHomepageRecommended && (
+                          <div className="absolute left-1 top-1 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-bold shadow">
+                            推荐
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col gap-2 pr-1">
+                        <div className="min-w-0">
+                          <span
+                            className="float-left mr-1.5 px-1.5 py-0 rounded-[5px] text-[10px] font-bold text-white relative overflow-hidden"
+                            style={{
+                              backgroundImage:
+                                'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
+                              boxShadow:
+                                '0 1px 1px rgba(37,99,235,0.4), inset 0 1px 0 rgba(255,255,255,0.25)',
+                            }}
+                          >
+                            <span className="relative">{brandName}</span>
+                          </span>
+                          <div className="text-sm font-extrabold text-slate-900 leading-snug break-words">
+                            {lens.baseInfo.fullName}
+                          </div>
+                        </div>
+                        <div className="text-[11.5px] text-slate-500 leading-[16px] line-clamp-1 clear-both">
+                          {TECH_TAG_LABEL_MAP[lens.baseInfo.techStructure ?? ''] ?? lens.baseInfo.techStructure ?? '专业近视防控技术'}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderMePage = () => (
     <div className="flex-1 overflow-y-auto bg-slate-50 pb-24">
       <div className="bg-gradient-to-br from-brand-600 to-brand-500 px-5 pt-5 pb-10 text-white rounded-b-[2rem] shadow-sm">
@@ -1606,6 +1823,20 @@ export default function MiniProgramPreviewPage() {
             <div className="text-left flex-1">
               <div className="text-sm font-bold text-slate-800">分享到朋友圈</div>
               <div className="text-[11px] text-slate-500 mt-0.5">一键生成九图+配文</div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-400" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setDisclaimerOpen(true)}
+            className="w-full px-4 py-3 flex items-center gap-3 active:bg-slate-50"
+          >
+            <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
+            <div className="text-left flex-1">
+              <div className="text-sm font-bold text-slate-800">医疗免责声明</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">已阅读并同意，点击查看原文</div>
             </div>
             <ChevronRight className="w-4 h-4 text-slate-400" />
           </button>
@@ -2113,6 +2344,7 @@ export default function MiniProgramPreviewPage() {
     if (detailView.type === 'content') return renderContentDetail();
     if (detailView.type === 'contentList') return renderContentList();
     if (bottomTab === 'home') return renderHomePage();
+    if (bottomTab === 'lens') return renderLensPage();
     if (bottomTab === 'compare') return renderComparePage();
     return renderMePage();
   };
@@ -2122,6 +2354,7 @@ export default function MiniProgramPreviewPage() {
     if (compareLandscapeMode) return null;
     const tabs: { key: BottomTab; label: string; Icon: typeof Home; active: boolean }[] = [
       { key: 'home', label: '首页', Icon: Home, active: bottomTab === 'home' },
+      { key: 'lens', label: '镜片', Icon: Glasses, active: bottomTab === 'lens' },
       { key: 'compare', label: `对比 (${compareIds.length})`, Icon: Scale, active: bottomTab === 'compare' },
       { key: 'me', label: '我的', Icon: UserCircle, active: bottomTab === 'me' },
     ];
@@ -2232,30 +2465,42 @@ export default function MiniProgramPreviewPage() {
                 </ul>
               </div>
               <div className="px-5 pb-5 flex items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (disclaimerAccepted) {
-                      setDisclaimerOpen(false);
-                    } else {
-                      showToast('请阅读并同意免责声明后使用');
-                    }
-                  }}
-                  className="flex-1 h-11 rounded-2xl bg-slate-100 text-slate-600 text-sm font-bold active:bg-slate-200"
-                >
-                  {disclaimerAccepted ? '关闭' : '不同意'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDisclaimerAccepted(true);
-                    setDisclaimerOpen(false);
-                    showToast('欢迎使用，已确认免责声明');
-                  }}
-                  className="flex-1 h-11 rounded-2xl bg-brand-600 text-white text-sm font-bold active:bg-brand-700 shadow-md shadow-brand-600/20"
-                >
-                  {disclaimerAccepted ? '我已知晓' : '我已阅读并同意'}
-                </button>
+                {disclaimerAccepted ? (
+                  <button
+                    type="button"
+                    onClick={() => setDisclaimerOpen(false)}
+                    className="flex-1 h-11 rounded-2xl bg-brand-600 text-white text-sm font-bold active:bg-brand-700 shadow-md shadow-brand-600/20"
+                  >
+                    关闭
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (disclaimerAccepted) {
+                          setDisclaimerOpen(false);
+                        } else {
+                          showToast('请阅读并同意免责声明后使用');
+                        }
+                      }}
+                      className="flex-1 h-11 rounded-2xl bg-slate-100 text-slate-600 text-sm font-bold active:bg-slate-200"
+                    >
+                      {disclaimerAccepted ? '关闭' : '不同意'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDisclaimerAccepted(true);
+                        setDisclaimerOpen(false);
+                        showToast('欢迎使用，已确认免责声明');
+                      }}
+                      className="flex-1 h-11 rounded-2xl bg-brand-600 text-white text-sm font-bold active:bg-brand-700 shadow-md shadow-brand-600/20"
+                    >
+                      {disclaimerAccepted ? '我已知晓' : '我已阅读并同意'}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
