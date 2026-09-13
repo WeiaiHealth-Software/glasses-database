@@ -36,6 +36,7 @@ export interface ContentArticle extends BaseEntity {
   relatedLensIds?: string[];
   sortWeight: number;
   isPinned: boolean;
+  isHomeRecommended: boolean;
   enabled: boolean;
   viewCount: number;
   createdAt: string;

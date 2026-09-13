@@ -54,6 +54,15 @@ export const ContentService = {
     return delay(ok({ expert, paper }));
   },
 
+  async listForHomepageCarousel(): Promise<ApiResponse<ContentArticle[]>> {
+    const recs = items.filter((r) => r.enabled && r.isHomeRecommended);
+    recs.sort((a, b) =>
+      Number(b.isPinned) - Number(a.isPinned)
+      || (b.createdAt ?? '').localeCompare(a.createdAt ?? ''),
+    );
+    return delay(ok(recs));
+  },
+
   async get(id: string): Promise<ApiResponse<ContentArticle>> {
     const r = items.find((x) => x.id === id);
     if (!r) return delay(err('内容不存在'));

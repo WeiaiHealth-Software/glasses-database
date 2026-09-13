@@ -35,6 +35,7 @@ interface FormState {
   source: string;
   relatedLensIds: string[];
   isPinned: boolean;
+  isHomeRecommended: boolean;
   enabled: boolean;
 }
 
@@ -47,6 +48,7 @@ const emptyForm = (): FormState => ({
   source: '',
   relatedLensIds: [],
   isPinned: false,
+  isHomeRecommended: false,
   enabled: true,
 });
 
@@ -124,6 +126,7 @@ export default function PaperReferenceListPage() {
       source: item.source,
       relatedLensIds: [...(item.relatedLensIds ?? [])],
       isPinned: false,
+      isHomeRecommended: item.isHomeRecommended,
       enabled: item.enabled,
     });
     setModalOpen(true);
@@ -157,6 +160,7 @@ export default function PaperReferenceListPage() {
           source: form.source.trim(),
           relatedLensIds: form.relatedLensIds,
           isPinned: false,
+          isHomeRecommended: form.isHomeRecommended,
           enabled: form.enabled,
         });
         if (res.code === 0) {
@@ -175,6 +179,7 @@ export default function PaperReferenceListPage() {
           source: form.source.trim(),
           relatedLensIds: form.relatedLensIds,
           isPinned: false,
+          isHomeRecommended: form.isHomeRecommended,
           enabled: form.enabled,
         });
         if (res.code === 0) {
@@ -192,6 +197,13 @@ export default function PaperReferenceListPage() {
     const res = await ContentService.toggleEnabled(item.id);
     if (res.code === 0) {
       ok(res.data.enabled ? '已启用展示' : '已暂停展示');
+      void load();
+    } else err(res.message);
+  };
+  const toggleHomeRecommended = async (item: any) => {
+    const res = await ContentService.update(item.id, { isHomeRecommended: !item.isHomeRecommended });
+    if (res.code === 0) {
+      ok(res.data.isHomeRecommended ? '已加入首页推荐' : '已移出首页推荐');
       void load();
     } else err(res.message);
   };
@@ -364,6 +376,15 @@ export default function PaperReferenceListPage() {
               <span className="text-xs text-slate-600 truncate block max-w-[150px]" title={r.source}>
                 {r.source}
               </span>
+            ),
+          },
+          {
+            key: 'homeRecommended',
+            title: '首页推荐',
+            width: 90,
+            align: 'center',
+            render: (_v, r) => (
+              <Switch checked={r.isHomeRecommended} onChange={() => toggleHomeRecommended(r)} size="sm" />
             ),
           },
           {
@@ -543,6 +564,10 @@ export default function PaperReferenceListPage() {
             </div>
             <div className="flex items-center justify-between gap-4 pt-2">
               <div className="flex-1" />
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Switch checked={form.isHomeRecommended} onChange={(v: any) => setForm({ ...form, isHomeRecommended: v })} size="sm" />
+                <span className="text-xs font-bold text-slate-600">首页推荐</span>
+              </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Switch checked={form.enabled} onChange={(v: any) => setForm({ ...form, enabled: v })} size="sm" />
                 <span className="text-xs font-bold text-slate-600">立即启用</span>

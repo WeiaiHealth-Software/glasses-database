@@ -25,3 +25,7 @@ dist-ssr
 
 # Superpowers brainstorming session artifacts
 .superpowers/
+
+# Isolated git worktrees
+.worktrees/
+worktrees/

@@ -94,7 +94,7 @@ export const Tabs: React.FC<TabsProps> = ({
               aria-selected={active}
               disabled={disabled}
               onClick={() => handleClick(value, disabled)}
-              className={`relative inline-flex items-center gap-2 font-bold transition-all ${padX} py-3.5 ${textSize} ${
+              className={`relative inline-flex items-center gap-2 font-bold transition-all flex-1 min-w-0 justify-center ${padX} ${padY} ${textSize} ${
                 active
                   ? 'text-brand-600'
                   : disabled

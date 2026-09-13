@@ -87,6 +87,8 @@ export default function MiniProgramPreviewPage() {
 
   const [homeExpert, setHomeExpert] = useState<ContentArticle[]>([]);
   const [homePaper, setHomePaper] = useState<ContentArticle[]>([]);
+  const [homeCarousel, setHomeCarousel] = useState<ContentArticle[]>([]);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const [contentListTab, setContentListTab] = useState<ContentCategory>('expert_article');
   const [contentListFilter, setContentListFilter] = useState<{ tag?: string; kw?: string }>({});
   const [contentList, setContentList] = useState<ContentArticle[]>([]);
@@ -122,7 +124,22 @@ export default function MiniProgramPreviewPage() {
         setHomePaper(res.data.paper);
       }
     })();
+    void (async () => {
+      const res = await ContentService.listForHomepageCarousel();
+      if (res.code === 0) {
+        setHomeCarousel(res.data);
+        setCarouselIndex(0);
+      }
+    })();
   }, []);
+
+  useEffect(() => {
+    if (homeCarousel.length <= 1 || bottomTab !== 'home' || detailView.type !== 'none') return;
+    const t = window.setInterval(() => {
+      setCarouselIndex((i) => (i + 1) % homeCarousel.length);
+    }, 3000);
+    return () => window.clearInterval(t);
+  }, [homeCarousel.length, bottomTab, detailView.type]);
 
   useEffect(() => {
     if (detailView.type !== 'contentList') return;
@@ -415,55 +432,61 @@ export default function MiniProgramPreviewPage() {
 
       <div className="p-4 space-y-3">
         {(() => {
-          const articles = [...homeExpert, ...homePaper];
-          if (homeExpert.length === 0 && homePaper.length === 0) return null;
+          if (homeCarousel.length === 0 && homeExpert.length === 0 && homePaper.length === 0) return null;
+          const totalContentCount = homeExpert.length + homePaper.length;
           const toneExpert = { badge: 'bg-teal-50 text-teal-700 border-teal-200', title: '专家解说' };
           const tonePaper = { badge: 'bg-indigo-50 text-indigo-700 border-indigo-200', title: '论文参考' };
-          const renderCard = (a: ContentArticle, tone: { badge: string; title: string }, IconComp: typeof BookOpen) => (
-            <div
-              key={a.id}
-              onClick={() => setDetailView({ type: 'content', articleId: a.id })}
-              className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 relative overflow-hidden active:scale-[0.995] cursor-pointer"
-            >
+          const renderCarouselCard = (a: ContentArticle) => {
+            const isExp = a.category === 'expert_article';
+            const tone = isExp ? toneExpert : tonePaper;
+            const IconComp = isExp ? MessageSquareText : BookOpen;
+            return (
               <div
-                className={`absolute right-0 top-0 w-10 h-10 ${tone.badge} border-l border-b rounded-bl-2xl flex items-center justify-center`}
-                style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }}
+                key={a.id}
+                onClick={() => setDetailView({ type: 'content', articleId: a.id })}
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 relative overflow-hidden active:scale-[0.995] cursor-pointer"
               >
-                <ChevronRight className="w-3.5 h-3.5 relative left-1 -top-1 opacity-70" />
-              </div>
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${tone.badge}`}>
-                  <IconComp className="w-3 h-3" /> {tone.title}
+                <div
+                  className={`absolute right-0 top-0 w-10 h-10 ${tone.badge} border-l border-b rounded-bl-2xl flex items-center justify-center`}
+                  style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }}
+                >
+                  <ChevronRight className="w-3.5 h-3.5 relative left-1 -top-1 opacity-70" />
                 </div>
-                {a.isPinned && (
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                    <Pin className="w-3 h-3" /> 置顶
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border ${tone.badge}`}>
+                    <IconComp className="w-3 h-3" /> {tone.title}
                   </div>
-                )}
-              </div>
-              <div className="text-[13px] font-bold text-slate-800 leading-snug line-clamp-1 mb-1 pr-8">
-                {a.title}
-              </div>
-              <div className="text-[11px] text-slate-500 leading-5 line-clamp-2 mb-2 pr-2">
-                {a.summary}
-              </div>
-              <div className="flex flex-wrap items-center gap-1.5 justify-between">
-                <div className="flex flex-wrap gap-1">
-                  {a.tags.slice(0, 3).map((t) => (
-                    <span
-                      key={t}
-                      className={`px-2 py-0.5 rounded-lg text-[9.5px] font-bold border ${tone.badge}`}
-                    >
-                      {CONTENT_TAG_LABEL[t]}
-                    </span>
-                  ))}
+                  {a.isPinned && (
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                      <Pin className="w-3 h-3" /> 置顶
+                    </div>
+                  )}
                 </div>
-                <span className="text-[10px] text-slate-400 truncate max-w-[120px]">
-                  {a.source}
-                </span>
+                <div className="text-[13px] font-bold text-slate-800 leading-snug line-clamp-1 mb-1 pr-8">
+                  {a.title}
+                </div>
+                <div className="text-[11px] text-slate-500 leading-5 line-clamp-2 mb-2 pr-2">
+                  {a.summary}
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 justify-between">
+                  <div className="flex flex-wrap gap-1">
+                    {a.tags.slice(0, 3).map((t) => (
+                      <span
+                        key={t}
+                        className={`px-2 py-0.5 rounded-lg text-[9.5px] font-bold border ${isExp ? toneExpert.badge : tonePaper.badge}`}
+                      >
+                        {CONTENT_TAG_LABEL[t]}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-slate-400 truncate max-w-[120px]">
+                    {a.source}
+                  </span>
+                </div>
               </div>
-            </div>
-          );
+            );
+          };
+          const realIndex = homeCarousel.length === 0 ? 0 : carouselIndex % homeCarousel.length;
           return (
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2.5">
@@ -472,20 +495,48 @@ export default function MiniProgramPreviewPage() {
                     <BookOpen className="w-3.5 h-3.5" /> 专业信息
                   </div>
                   <span className="text-[11px] text-slate-500 font-semibold">
-                    共 {articles.length} 篇
+                    共 {totalContentCount} 篇
                   </span>
                 </div>
                 <div
                   className="text-[11px] font-bold text-brand-600 flex items-center gap-1 cursor-pointer active:opacity-70"
                   onClick={() => setDetailView({ type: 'contentList' })}
                 >
-                  最新入库 <ChevronRight className="w-3 h-3" />
+                  查看全部 <ChevronRight className="w-3 h-3" />
                 </div>
               </div>
-              <div className="space-y-2.5">
-                {homeExpert.slice(0, 2).map((a) => renderCard(a, toneExpert, MessageSquareText))}
-                {homePaper.slice(0, 2).map((a) => renderCard(a, tonePaper, BookOpen))}
-              </div>
+              {homeCarousel.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-5 text-center text-[11px] text-slate-400">
+                  暂无首页推荐内容，请在后台管理页打开「首页推荐」开关
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="overflow-hidden rounded-2xl">
+                    <div
+                      className="flex transition-transform duration-500 ease-out"
+                      style={{ transform: `translateX(-${realIndex * 100}%)` }}
+                    >
+                      {homeCarousel.map((a) => (
+                        <div key={a.id} className="shrink-0 w-full px-[1px]">
+                          {renderCarouselCard(a)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center gap-1.5 mt-2">
+                    {homeCarousel.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setCarouselIndex(i)}
+                        className={`transition-all duration-300 rounded-full ${
+                          i === realIndex ? 'w-4 h-1.5 bg-brand-600' : 'w-1.5 h-1.5 bg-slate-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })()}
@@ -1648,11 +1699,84 @@ export default function MiniProgramPreviewPage() {
           </div>
 
           <div className="px-4 pt-3">
-            <Tabs variant="secondary" defaultValue="parent">
+            <Tabs
+              variant="secondary"
+              defaultValue="params"
+              tabsClassName="flex-nowrap !gap-0"
+              size="sm"
+            >
               <TabItem
                 label={
-                  <span className="inline-flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5" /> 家长通俗
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    <ClipboardList className="w-3.5 h-3.5 shrink-0" /> 镜片参数
+                  </span>
+                }
+                value="params"
+              >
+                <div className="space-y-3 pt-3 pb-2">
+                  {doctorSections.map((sec) => (
+                    <div key={sec.group} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                      <div className="px-4 py-2.5 bg-gradient-to-r from-slate-50 via-white to-white border-b border-slate-100 text-[13px] font-extrabold text-slate-800 flex items-center gap-2">
+                        <span className="w-1 h-3.5 rounded-full bg-brand-500 shrink-0" />
+                        {sec.section}
+                      </div>
+                      <div className="divide-y divide-slate-50">
+                        {sec.rows.map((r, idx) => {
+                          const cell = r.values[0] as { text: string; highlighted?: boolean; warn?: boolean };
+                          const text = cell?.text || '—';
+                          const isAlt = idx % 2 === 1;
+                          return (
+                            <div
+                              key={r.key}
+                              className={`grid grid-cols-[96px_1fr] gap-2 ${
+                                isAlt ? 'bg-slate-50/40' : 'bg-white'
+                              }`}
+                            >
+                              <div className="px-3 py-2.5 text-[11px] text-slate-500 leading-5 font-semibold flex items-start">
+                                <span>
+                                  {r.label}
+                                  {r.hint && (
+                                    <div className="text-[10px] text-slate-400 font-normal leading-4 mt-0.5">
+                                      {r.hint}
+                                    </div>
+                                  )}
+                                </span>
+                              </div>
+                              <div
+                                className={`px-3 py-2.5 text-[12.5px] leading-6 font-medium ${
+                                  cell?.warn
+                                    ? 'text-red-700'
+                                    : cell?.highlighted
+                                    ? 'text-brand-700 font-bold'
+                                    : 'text-slate-800'
+                                }`}
+                              >
+                                {cell?.warn && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-50 border border-red-100 text-[10.5px] font-bold mr-1.5 -mt-0.5 mb-1">
+                                    <AlertTriangle className="w-3 h-3" /> 需注意
+                                  </span>
+                                )}
+                                {cell?.highlighted && !cell?.warn && (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-brand-50 border border-brand-100 text-[10.5px] font-bold text-brand-700 mr-1.5 -mt-0.5 mb-1">
+                                    关键指标
+                                  </span>
+                                )}
+                                {String(text).split('\n').map((t, i) => (
+                                  <div key={i}>{t || '—'}</div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </TabItem>
+              <TabItem
+                label={
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    <User className="w-3.5 h-3.5 shrink-0" /> 家长通俗
                   </span>
                 }
                 value="parent"
@@ -1699,8 +1823,8 @@ export default function MiniProgramPreviewPage() {
               </TabItem>
               <TabItem
                 label={
-                  <span className="inline-flex items-center gap-1.5">
-                    <Stethoscope className="w-3.5 h-3.5" /> 医生专业
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    <Stethoscope className="w-3.5 h-3.5 shrink-0" /> 医生专业
                   </span>
                 }
                 value="doctor"

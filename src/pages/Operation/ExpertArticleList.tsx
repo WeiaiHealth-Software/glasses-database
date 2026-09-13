@@ -35,6 +35,7 @@ interface FormState {
   source: string;
   relatedLensIds: string[];
   isPinned: boolean;
+  isHomeRecommended: boolean;
   enabled: boolean;
 }
 
@@ -47,6 +48,7 @@ const emptyForm = (): FormState => ({
   source: '',
   relatedLensIds: [],
   isPinned: false,
+  isHomeRecommended: false,
   enabled: true,
 });
 
@@ -124,6 +126,7 @@ export default function ExpertArticleListPage() {
       source: item.source,
       relatedLensIds: [...(item.relatedLensIds ?? [])],
       isPinned: item.isPinned,
+      isHomeRecommended: item.isHomeRecommended,
       enabled: item.enabled,
     });
     setModalOpen(true);
@@ -157,6 +160,7 @@ export default function ExpertArticleListPage() {
           source: form.source.trim(),
           relatedLensIds: form.relatedLensIds,
           isPinned: form.isPinned,
+          isHomeRecommended: form.isHomeRecommended,
           enabled: form.enabled,
         });
         if (res.code === 0) {
@@ -175,6 +179,7 @@ export default function ExpertArticleListPage() {
           source: form.source.trim(),
           relatedLensIds: form.relatedLensIds,
           isPinned: form.isPinned,
+          isHomeRecommended: form.isHomeRecommended,
           enabled: form.enabled,
         });
         if (res.code === 0) {
@@ -199,6 +204,13 @@ export default function ExpertArticleListPage() {
     const res = await ContentService.togglePinned(item.id);
     if (res.code === 0) {
       ok(res.data.isPinned ? '已置顶' : '已取消置顶');
+      void load();
+    } else err(res.message);
+  };
+  const toggleHomeRecommended = async (item: any) => {
+    const res = await ContentService.update(item.id, { isHomeRecommended: !item.isHomeRecommended });
+    if (res.code === 0) {
+      ok(res.data.isHomeRecommended ? '已加入首页推荐' : '已移出首页推荐');
       void load();
     } else err(res.message);
   };
@@ -388,6 +400,15 @@ export default function ExpertArticleListPage() {
             ),
           },
           {
+            key: 'homeRecommended',
+            title: '首页推荐',
+            width: 90,
+            align: 'center',
+            render: (_v, r) => (
+              <Switch checked={r.isHomeRecommended} onChange={() => toggleHomeRecommended(r)} size="sm" />
+            ),
+          },
+          {
             key: 'enabled',
             title: '状态',
             width: 72,
@@ -569,6 +590,10 @@ export default function ExpertArticleListPage() {
               <label className="flex items-center gap-2 cursor-pointer">
                 <Switch checked={form.isPinned} onChange={(v: any) => setForm({ ...form, isPinned: v })} size="sm" />
                 <span className="text-xs font-bold text-slate-600">置顶展示</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Switch checked={form.isHomeRecommended} onChange={(v: any) => setForm({ ...form, isHomeRecommended: v })} size="sm" />
+                <span className="text-xs font-bold text-slate-600">首页推荐</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <Switch checked={form.enabled} onChange={(v: any) => setForm({ ...form, enabled: v })} size="sm" />
